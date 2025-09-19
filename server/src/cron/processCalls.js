@@ -2,9 +2,8 @@ import cron from "node-cron";
 import Call from "../models/Call.js";
 import Summary from "../models/Summary.js";
 
-const phoneMetaMap = JSON.parse(process.env.PHONE_META_MAP || "{}");
-
 async function processCompletedCalls() {
+  const phoneMetaMap = JSON.parse(process.env.PHONE_META_MAP || "{}");
   try {
     const unprocessedCalls = await Call.find({
       status: "completed",
