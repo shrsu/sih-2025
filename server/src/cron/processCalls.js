@@ -1,9 +1,10 @@
 import cron from "node-cron";
 import Call from "../models/Call.js";
-import Summary from "../models/Summary.js";
+import Ticket from "../models/Ticket.js";
 
 async function processCompletedCalls() {
   const phoneMetaMap = JSON.parse(process.env.PHONE_META_MAP || "{}");
+
   try {
     const unprocessedCalls = await Call.find({
       status: "completed",
@@ -19,19 +20,26 @@ async function processCompletedCalls() {
         gender: "unknown",
       };
 
-      const existing = await Summary.findOne({ phoneNumber });
+      const existing = await Ticket.findOne({ phoneNumber, isActive: true });
+
+      const summaryEntry = {
+        id: call._id,
+        aiAnalysis,
+            };
+
       if (existing) {
-        existing.aiAnalysis.push(aiAnalysis);
+        existing.summaries.push(summaryEntry);
         await existing.save();
-        console.log(`Updated summary for ${phoneNumber}`);
+        console.log(`Updated ticket for ${phoneNumber}`);
       } else {
-        await Summary.create({
+        await Ticket.create({
           phoneNumber,
           name: metadata.name,
           gender: metadata.gender,
-          aiAnalysis: [aiAnalysis],
+          summaries: [summaryEntry],
+          isActive: true,
         });
-        console.log(`Created summary for ${phoneNumber}`);
+        console.log(`Created new ticket for ${phoneNumber}`);
       }
 
       call.processed = true;

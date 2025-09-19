@@ -1,6 +1,5 @@
-## 1. Register Pharmacy
-**POST** `/api/register/pharmacy`
-
+### 1. `/register/pharmacy` (POST)
+**Purpose:** Register a new pharmacy and create its inventory.
 **Request Body:**
 ```json
 {
@@ -11,18 +10,14 @@
   "password": "string"
 }
 ```
-**Response:**
-- 201 Created
-  ```json
-  { "message": "Pharmacy registered successfully", "id": "pharmacy_id" }
-  ```
-- 409 Conflict, 400 Bad Request, 500 Internal Error
+**Response:**  
+- `201 Created` with `{ message, id }`  
+- Errors: `400`, `409`, `500`
 
 ---
 
-## 2. Register Doctor
-**POST** `/api/register/doctor`
-
+### 2. `/register/doctor` (POST)
+**Purpose:** Register a new doctor.
 **Request Body:**
 ```json
 {
@@ -30,18 +25,14 @@
   "password": "string"
 }
 ```
-**Response:**
-- 201 Created
-  ```json
-  { "message": "Doctor registered successfully", "id": "doctor_id" }
-  ```
-- 400 Bad Request, 500 Internal Error
+**Response:**  
+- `201 Created` with `{ message, id }`  
+- Errors: `400`, `500`
 
 ---
 
-## 3. Login Pharmacy
-**POST** `/api/login/pharmacy`
-
+### 3. `/login/pharmacy` (POST)
+**Purpose:** Login for pharmacy.
 **Request Body:**
 ```json
 {
@@ -49,25 +40,14 @@
   "password": "string"
 }
 ```
-**Response:**
-- 200 OK
-  ```json
-  {
-    "message": "Pharmacy login successful",
-    "pharmacy": {
-      "id": "string",
-      "name": "string",
-      "location_area": "string"
-    }
-  }
-  ```
-- 400, 404, 401, 500 Error
+**Response:**  
+- `200 OK` with `{ message, pharmacy }`  
+- Errors: `400`, `404`, `401`, `500`
 
 ---
 
-## 4. Login Doctor
-**POST** `/api/login/doctor`
-
+### 4. `/login/doctor` (POST)
+**Purpose:** Login for doctor.
 **Request Body:**
 ```json
 {
@@ -75,69 +55,45 @@
   "password": "string"
 }
 ```
-**Response:**
-- 200 OK
-  ```json
-  {
-    "message": "Doctor login successful",
-    "doctor": {
-      "id": "string",
-      "name": "string"
-    }
-  }
-  ```
-- 400, 404, 401, 500 Error
+**Response:**  
+- `200 OK` with `{ message, doctor }`  
+- Errors: `400`, `404`, `401`, `500`
 
 ---
 
-## 5. Add Medicine to Inventory
-**POST** `/api/inventory/add`
-
+### 5. `/inventory/add` (POST)
+**Purpose:** Add a medicine to a pharmacy's inventory.
 **Request Body:**
 ```json
 {
   "pharmacy_id": "string",
-  "medicine": {
-    "name": "string",
-    "requires_prescription": "boolean",
-    "status": "in stock" | "out of stock"
-  }
+  "medicine": { "name": "string", ... }
 }
 ```
-**Response:**
-- 200 OK
-  ```json
-  { "message": "Medicine added", "inventory": [ ... ] }
-  ```
-- 400, 404, 500 Error
+**Response:**  
+- `200 OK` with `{ message, inventory }`  
+- Errors: `400`, `404`, `500`
 
 ---
 
-## 6. Update Medicine in Inventory
-**PATCH** `/api/inventory/update`
-
+### 6. `/inventory/update` (PATCH)
+**Purpose:** Update a medicine's `requires_prescription` status in inventory.
 **Request Body:**
 ```json
 {
   "pharmacy_id": "string",
   "name": "string",
-  "updates": {
-    "requires_prescription": "boolean"
-  }
+  "updates": { "requires_prescription": true/false }
 }
 ```
-**Response:**
-- 200 OK
-  ```json
-  { "message": "Medicine updated successfully", "inventory": [ ... ] }
-  ```
-- 400, 404, 500 Error
+**Response:**  
+- `200 OK` with `{ message, inventory }`  
+- Errors: `400`, `404`, `500`
 
 ---
 
-## 7. Remove Medicine from Inventory
-**DELETE** `/api/inventory/remove`
-
+### 7. `/inventory/remove` (DELETE)
+**Purpose:** Remove a medicine from a pharmacy's inventory.
 **Request Body:**
 ```json
 {
@@ -145,29 +101,68 @@
   "name": "string"
 }
 ```
-**Response:**
-- 200 OK
-  ```json
-  { "message": "Medicine removed", "inventory": [ ... ] }
-  ```
-- 400, 404, 500 Error
+**Response:**  
+- `200 OK` with `{ message, inventory }`  
+- Errors: `400`, `404`, `500`
 
 ---
 
-## 8. Recon/Reset Data
-**POST** `/api/recon/reset`
-
-**Request Body:** (empty)
-
-**Response:**
-- 200 OK
-  ```json
-  {
-    "message": "Recon completed successfully",
-    "summariesDeleted": number,
-    "callsUpdated": number
-  }
-  ```
-- 500 Internal Error
+### 8. `/inventory` (GET)
+**Purpose:** Get the inventory for a pharmacy.
+**Request Body:**  
+```json
+{
+  "pharmacy_id": "string"
+}
+```
+**Response:**  
+- `200 OK` with `{ inventory }`  
+- Errors: `400`, `404`, `500`
 
 ---
+
+### 9. `/tickets` (GET)
+**Purpose:** Get all tickets.
+**Response:**  
+- `200 OK` with `[tickets]`  
+- Errors: `500`
+
+---
+
+### 10. `/tickets/prescription` (PATCH)
+**Purpose:** Update a prescription in a ticket.
+**Request Body:**
+```json
+{
+  "summary_id": "string",
+  "doctor_name": "string",
+  "prescription": { ... }
+}
+```
+**Response:**  
+- `200 OK` with `{ message, ticket }`  
+- Errors: `400`, `404`, `500`
+
+---
+
+### 11. `/tickets/status` (PATCH)
+**Purpose:** Update the active status of a ticket.
+**Request Body:**
+```json
+{
+  "ticket_id": "string",
+  "isActive": true/false
+}
+```
+**Response:**  
+- `200 OK` with `{ message, ticket }`  
+- Errors: `400`, `404`, `500`
+
+---
+
+### 12. `/recon/reset` (POST)
+**Purpose:** Reset all tickets and mark all calls as unprocessed (for reconciliation/maintenance).
+**Response:**  
+- `200 OK` with `{ message, ticketsDeleted, callsUpdated }`  
+- Errors: `500`
+

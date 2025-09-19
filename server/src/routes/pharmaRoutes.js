@@ -122,4 +122,23 @@ router.get("/summaries/:phoneNumber", async (req, res) => {
 });
 
 
+router.get("/inventory", async (req, res) => {
+  const { pharmacy_id } = req.body;
+
+  if (!pharmacy_id) {
+    return res.status(400).json({ error: "pharmacy_id is required" });
+  }
+
+  try {
+    const inventory = await Inventory.findOne({ pharmacy_id });
+    if (!inventory) {
+      return res.status(404).json({ error: "Pharmacy inventory not found" });
+    }
+    res.status(200).json({ inventory: inventory.inventory });
+  } catch (err) {
+    console.error("Error fetching inventory:", err);
+    res.status(500).json({ error: "Internal error while fetching inventory" });
+  }
+});
+
 export default router;
