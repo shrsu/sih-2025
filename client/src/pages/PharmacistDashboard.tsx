@@ -52,9 +52,8 @@ type Sale = {
 type ModalType = "add" | "edit" | "delete";
 
 const PharmacistDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"inventory" | "history">(
-    "inventory"
-  );
+const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("inventory");
+
   const [medicines, setMedicines] = useState<Medicine[]>([
     {
       id: 1,
@@ -118,7 +117,11 @@ const PharmacistDashboard: React.FC = () => {
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
-  const [prescriptionId, setPrescriptionId] = useState("");
+  const [nirmayPhone, setNirmayPhone] = useState("");
+  const [nirmayData, setNirmayData] = useState<{ isActive: string; prescriptions: string[] } | null>(null);
+  const [loadingNirmay, setLoadingNirmay] = useState(false);
+
+
   const [formData, setFormData] = useState<Omit<Medicine, "id">>({
     name: "",
     category: "",
@@ -168,49 +171,7 @@ const PharmacistDashboard: React.FC = () => {
     }
     setShowModal(true);
   };
-  const closeModal = () => {
-    setShowModal(false);
-    resetForm();
-    setPrescriptionId("");
-  };
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (modalType === "add") {
-      const newMedicine: Medicine = {
-        id: Date.now(),
-        ...formData,
-        stock: Number(formData.stock),
-        price: Number(formData.price),
-        minStock: Number(formData.minStock),
-      };
-      setMedicines([...medicines, newMedicine]);
-    } else if (modalType === "edit" && selectedMedicine) {
-      setMedicines(
-        medicines.map((med) =>
-          med.id === selectedMedicine.id
-            ? {
-                ...med,
-                ...formData,
-                stock: Number(formData.stock),
-                price: Number(formData.price),
-                minStock: Number(formData.minStock),
-              }
-            : med
-        )
-      );
-    }
-    closeModal();
-  };
-  const handleDelete = () => {
-    if (!prescriptionId.trim()) {
-      alert("Prescription ID is required to delete medicine");
-      return;
-    }
-    if (selectedMedicine) {
-      setMedicines(medicines.filter((med) => med.id !== selectedMedicine.id));
-    }
-    closeModal();
-  };
+  
   const filteredMedicines = medicines.filter((med) => {
     const matchesSearch =
       med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -286,6 +247,7 @@ const PharmacistDashboard: React.FC = () => {
             {[
               { id: "inventory" as const, label: "Medicine Inventory", icon: Package },
               { id: "history" as const, label: "Sales History", icon: TrendingUp },
+              { id: "nirmay" as const, label: "Nirmay Medicines", icon: AlertTriangle },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -299,6 +261,7 @@ const PharmacistDashboard: React.FC = () => {
                 <tab.icon className="h-5 w-5" />
                 <span>{tab.label}</span>
               </button>
+              
             ))}
           </div>
         </div>
@@ -509,6 +472,74 @@ const PharmacistDashboard: React.FC = () => {
             </CardContent>
           </Card>
         )}
+        
+        {activeTab === "nirmay" && (
+          <div className="bg-card rounded-xl shadow-sm p-6 mb-6 border">
+            <h2 className="text-lg font-semibold mb-4">Nirmay Medicines</h2>
+
+            {/* Phone number input */}
+            <div className="mb-4">
+              <label className="block mb-1 font-medium">Phone Number</label>
+              <input
+                type="text"
+                className="w-full px-4 py-2 border rounded-lg"
+                value={nirmayPhone}
+                onChange={(e) => setNirmayPhone(e.target.value)}
+              />
+            </div>
+
+            <button
+              className="bg-primary hover:brightness-95 text-primary-foreground px-6 py-2 rounded-lg transition-colors mb-4"
+              onClick={async () => {
+                if (!nirmayPhone.trim()) {
+                  alert("Enter a phone number");
+                  return;
+                }
+                setLoadingNirmay(true);
+                try {
+                  const res = await fetch(`http://localhost:8080/api/summaries/${nirmayPhone}`);
+                  const data = await res.json();
+                  if (!res.ok) {
+                    alert(data.error || "Failed to fetch data");
+                    setNirmayData(null);
+                  } else {
+                    setNirmayData({
+                      isActive: data.isActive,
+                      prescriptions: data.prescriptions || [],
+                    });
+                  }
+                } catch (err) {
+                  alert("Error fetching data");
+                  setNirmayData(null);
+                }
+                setLoadingNirmay(false);
+              }}
+            >
+              Check Status
+            </button>
+
+            {/* Display results */}
+            {loadingNirmay && <p>Loading...</p>}
+            {nirmayData && (
+              <div className="mt-4 p-4 border rounded-lg bg-muted/10">
+                <p>
+                  <strong>Is Active:</strong> {nirmayData.isActive}
+                </p>
+                {nirmayData.prescriptions.length > 0 && (
+                  <div className="mt-2">
+                    <strong>Prescriptions:</strong>
+                    <ul className="list-disc ml-5">
+                      {nirmayData.prescriptions.map((p, idx) => (
+                        <li key={idx}>{p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+      )}
+        
       </div>
     </main>
   );
