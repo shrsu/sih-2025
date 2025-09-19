@@ -34,7 +34,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     role: "",
   });
 
-  // Load user from localStorage on first mount
   useEffect(() => {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (stored) {
@@ -49,7 +48,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Wrap setUser to persist only when explicitly called
   const setUser = (newUser: UserContextType) => {
     _setUser(newUser);
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newUser));
