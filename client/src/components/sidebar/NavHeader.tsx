@@ -26,7 +26,7 @@ export function NavHeader() {
             <HeartPulse />
           </div>
           <div className="grid font-bold ml-4 flex-1 text-left text-sm leading-tight">
-            Nirmaya
+            Nirmay
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>
