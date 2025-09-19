@@ -10,6 +10,7 @@ import { startCron } from "./src/cron/processCalls.js";
 import reconRoutes from "./src/routes/reconRoutes.js";
 import registerRoutes from "./src/routes/registerRoutes.js"; 
 import inventoryRoutes from "./src/routes/pharmaRoutes.js";
+import loginRoutes from "./src/routes/loginRoutes.js";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.get("/", (req, res) => {
 
 app.use("/api", reconRoutes);
 app.use("/api", registerRoutes);
+app.use("/api", loginRoutes);
 app.use("/api", inventoryRoutes);
 
 const PORT = process.env.PORT || 8080;

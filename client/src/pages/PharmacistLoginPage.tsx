@@ -2,7 +2,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,11 +16,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { ModeToggle } from "@/themes/mode-toggle";
 import { HeartPulse } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useUserContext } from "@/contexts/UserContext";
 
 const pharmacistLoginSchema = z.object({
-  userId: z.string().min(1, "User ID is required"),
+  userId: z.string().min(1, "Pharmacy ID is required"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -50,17 +49,44 @@ function PharmacistLoginPage() {
     },
   });
 
-  const onSubmit = (values: PharmacistLoginForm) => {
+  const onSubmit = async (values: PharmacistLoginForm) => {
     const { userId, password } = values;
 
-    if (userId === "7301122" && password === "7301122") {
-      setUser({
-        loggedIn: true,
-        name: "Suman Yadav",
-        email: "pharma.suman@nirmaya.in",
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URI}/login/pharmacy`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: userId, password }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed");
+      }
+
+      const userData = {
+        id: data.pharmacy.id,
+        name: data.pharmacy.name,
         role: "pharmacist",
-      });
+        location_area: data.pharmacy.location_area,
+        email: "", // optional
+        loggedIn: true,
+      };
+
+      // Save to localStorage
+      localStorage.setItem("nirmaya-user", JSON.stringify(userData));
+
+      // Update context
+      setUser(userData);
+
+      // Navigate to dashboard
       navigate("/pharmacist/dashboard");
+    } catch (err: any) {
+      alert(err.message || "Something went wrong during login");
     }
   };
 
@@ -89,9 +115,9 @@ function PharmacistLoginPage() {
                 name="userId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>User ID</FormLabel>
+                    <FormLabel>Pharmacy ID</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your user ID" {...field} />
+                      <Input placeholder="Enter your pharmacy ID" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
