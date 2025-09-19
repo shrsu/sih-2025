@@ -5,6 +5,7 @@ const summarySchema = new mongoose.Schema(
     phoneNumber: { type: String, unique: true },
     name: String,
     gender: String,
+    isActive: String,
     aiAnalysis: [Object],
   },
   { timestamps: true }
