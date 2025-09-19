@@ -10,6 +10,21 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/themes/mode-toggle";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type Medicine = {
   id: number;
@@ -75,8 +90,27 @@ const PharmacistDashboard: React.FC = () => {
       prescriptionId: "RX-2024-001",
       customer: "John Smith",
     },
+    {
+      id: 2,
+      medicineId: 2,
+      medicineName: "Amoxicillin 250mg",
+      quantity: 5,
+      price: 43.75,
+      date: "2024-09-17",
+      prescriptionId: "RX-2024-002",
+      customer: "Sarah Johnson",
+    },
+    {
+      id: 3,
+      medicineId: 1,
+      medicineName: "Paracetamol 500mg",
+      quantity: 3,
+      price: 7.5,
+      date: "2024-09-16",
+      prescriptionId: "RX-2024-003",
+      customer: "Michael Brown",
+    },
   ]);
-
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<ModalType>("add");
   const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(
@@ -95,7 +129,6 @@ const PharmacistDashboard: React.FC = () => {
     minStock: 0,
     batchNo: "",
   });
-
   const categories: string[] = [
     "Analgesic",
     "Antibiotic",
@@ -104,7 +137,6 @@ const PharmacistDashboard: React.FC = () => {
     "Cardiovascular",
     "Respiratory",
   ];
-
   const resetForm = () => {
     setFormData({
       name: "",
@@ -117,7 +149,6 @@ const PharmacistDashboard: React.FC = () => {
       batchNo: "",
     });
   };
-
   const openModal = (type: ModalType, medicine: Medicine | null = null) => {
     setModalType(type);
     setSelectedMedicine(medicine);
@@ -137,13 +168,11 @@ const PharmacistDashboard: React.FC = () => {
     }
     setShowModal(true);
   };
-
   const closeModal = () => {
     setShowModal(false);
     resetForm();
     setPrescriptionId("");
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (modalType === "add") {
@@ -172,7 +201,6 @@ const PharmacistDashboard: React.FC = () => {
     }
     closeModal();
   };
-
   const handleDelete = () => {
     if (!prescriptionId.trim()) {
       alert("Prescription ID is required to delete medicine");
@@ -183,7 +211,6 @@ const PharmacistDashboard: React.FC = () => {
     }
     closeModal();
   };
-
   const filteredMedicines = medicines.filter((med) => {
     const matchesSearch =
       med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -191,7 +218,6 @@ const PharmacistDashboard: React.FC = () => {
     const matchesCategory = !filterCategory || med.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
-
   const lowStockMedicines = medicines.filter(
     (med) => med.stock <= med.minStock
   );
@@ -200,6 +226,25 @@ const PharmacistDashboard: React.FC = () => {
     0
   );
 
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
   return (
     <main className="flex w-full flex-col min-h-screen">
       {/* Header */}
@@ -207,7 +252,6 @@ const PharmacistDashboard: React.FC = () => {
         <h1 className="text-xl font-bold">Pharma Dashboard</h1>
         <ModeToggle />
       </header>
-
       <div className="mx-auto max-w-7xl px-6 py-6 w-full">
         {/* Summary */}
         <div className="flex items-center justify-between mb-6">
@@ -227,7 +271,7 @@ const PharmacistDashboard: React.FC = () => {
               Total Medicines: {medicines.length}
             </div>
             <div className="rounded-lg px-4 py-2 shadow-2xs bg-accent text-accent-foreground">
-              Total Value: Rs.{totalValue.toFixed(2)}
+              Total Value: {formatCurrency(totalValue)}
             </div>
             {lowStockMedicines.length > 0 && (
               <div className="rounded-lg px-4 py-2 shadow-2xs bg-destructive text-destructive-foreground">
@@ -236,7 +280,6 @@ const PharmacistDashboard: React.FC = () => {
             )}
           </div>
         </div>
-
         {/* Tabs */}
         <div className="bg-card rounded-xl shadow-sm p-1 mb-6 border">
           <div className="flex space-x-1">
@@ -259,7 +302,6 @@ const PharmacistDashboard: React.FC = () => {
             ))}
           </div>
         </div>
-
         {/* Inventory Tab */}
         {activeTab === "inventory" && (
           <>
@@ -299,7 +341,6 @@ const PharmacistDashboard: React.FC = () => {
                 </button>
               </div>
             </div>
-
             {/* Alerts */}
             {lowStockMedicines.length > 0 && (
               <div className="bg-destructive/10 border border-destructive rounded-lg p-4 mb-6">
@@ -315,7 +356,6 @@ const PharmacistDashboard: React.FC = () => {
                 </p>
               </div>
             )}
-
             {/* Medicines */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredMedicines.map((m) => (
@@ -362,7 +402,7 @@ const PharmacistDashboard: React.FC = () => {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Price:</span>
                         <span className="font-semibold">
-                          Rs.{m.price.toFixed(2)}
+                          {formatCurrency(m.price)}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -384,58 +424,90 @@ const PharmacistDashboard: React.FC = () => {
             </div>
           </>
         )}
-
         {/* History Tab */}
         {activeTab === "history" && (
-          <div className="bg-card rounded-xl shadow-sm border">
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-semibold">Sales History</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/60">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                      Medicine
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                      Customer
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                      Quantity
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                      Amount
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                      Prescription ID
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {salesHistory.map((s) => (
-                    <tr key={s.id} className="hover:bg-muted/40">
-                      <td className="px-6 py-4 text-sm">{s.date}</td>
-                      <td className="px-6 py-4 text-sm font-medium">
-                        {s.medicineName}
-                      </td>
-                      <td className="px-6 py-4 text-sm">{s.customer}</td>
-                      <td className="px-6 py-4 text-sm">{s.quantity} units</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-green-600">
-                        Rs.{s.price.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-mono text-primary">
-                        {s.prescriptionId}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <Card className="shadow-sm border">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Sales History
+              </CardTitle>
+              <CardDescription>
+                View all medicine sales records and transactions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table className="rounded-md border">
+                <TableHeader>
+                  <TableRow className="bg-muted/50 hover:bg-muted/50">
+                    <TableHead className="rounded-tl-md">Date</TableHead>
+                    <TableHead>Medicine</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Unit Price</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="rounded-tr-md">Prescription</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {salesHistory.map((s) => {
+                    const medicine = medicines.find(m => m.id === s.medicineId);
+                    const unitPrice = medicine ? medicine.price : 0;
+                    const total = s.quantity * unitPrice;
+                    
+                    return (
+                      <TableRow 
+                        key={s.id} 
+                        className="hover:bg-muted/30 transition-colors"
+                      >
+                        <TableCell className="font-medium">
+                          {formatDate(s.date)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{s.medicineName}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {s.prescriptionId}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{s.customer}</div>
+                        </TableCell>
+                        <TableCell>{s.quantity}</TableCell>
+                        <TableCell>{formatCurrency(unitPrice)}</TableCell>
+                        <TableCell className="text-right font-semibold text-green-600">
+                          {formatCurrency(total)}
+                        </TableCell>
+                        <TableCell>
+                          <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                            {s.prescriptionId}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              
+              {/* Summary Section */}
+              <div className="mt-6 pt-4 border-t">
+                <div className="flex justify-between items-center">
+                  <div className="text-muted-foreground">Total Sales</div>
+                  <div className="text-xl font-bold">
+                    {formatCurrency(
+                      salesHistory.reduce(
+                        (sum, sale) => {
+                          const medicine = medicines.find(m => m.id === sale.medicineId);
+                          const unitPrice = medicine ? medicine.price : 0;
+                          return sum + (sale.quantity * unitPrice);
+                        },
+                        0
+                      )
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </main>
