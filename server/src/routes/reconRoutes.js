@@ -1,12 +1,12 @@
 import express from "express";
 import Call from "../models/Call.js";
-import Summary from "../models/Summary.js";
+import Ticket from "../models/Ticket.js";
 
 const router = express.Router();
 
 router.post("/recon/reset", async (req, res) => {
   try {
-    const summaryResult = await Summary.deleteMany({});
+    const ticketResult = await Ticket.deleteMany({});
 
     const callResult = await Call.updateMany(
       {},
@@ -15,7 +15,7 @@ router.post("/recon/reset", async (req, res) => {
 
     res.status(200).json({
       message: "Recon completed successfully",
-      summariesDeleted: summaryResult.deletedCount,
+      ticketsDeleted: ticketResult.deletedCount,
       callsUpdated: callResult.modifiedCount,
     });
   } catch (error) {
