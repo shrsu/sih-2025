@@ -122,4 +122,66 @@ router.get("/summaries/:phoneNumber", async (req, res) => {
 });
 
 
+router.get("/inventory", async (req, res) => {
+  const { pharmacy_id } = req.body;
+
+  if (!pharmacy_id) {
+    return res.status(400).json({ error: "pharmacy_id is required" });
+  }
+
+  try {
+    const inventory = await Inventory.findOne({ pharmacy_id });
+    if (!inventory) {
+      return res.status(404).json({ error: "Pharmacy inventory not found" });
+    }
+    res.status(200).json({ inventory: inventory.inventory });
+  } catch (err) {
+    console.error("Error fetching inventory:", err);
+    res.status(500).json({ error: "Internal error while fetching inventory" });
+  }
+});
+
+router.get("/summaries/:phoneNumber", async (req, res) => {
+  const { phoneNumber } = req.params;
+
+  if (!phoneNumber) {
+    return res.status(400).json({ error: "Phone number is required" });
+  }
+
+  try {
+    const summary = await Summary.findOne({ phoneNumber: "+91" + phoneNumber });
+    if (!summary) {
+      return res.status(404).json({ error: "No summary found for this phone number" });
+    }
+
+    res.json({
+      isActive: summary.isActive,
+      prescriptions: summary.aiAnalysis?.map((a) => a.prescriptionId) || [],
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+router.get("/inventory", async (req, res) => {
+  const { pharmacy_id } = req.body;
+
+  if (!pharmacy_id) {
+    return res.status(400).json({ error: "pharmacy_id is required" });
+  }
+
+  try {
+    const inventory = await Inventory.findOne({ pharmacy_id });
+    if (!inventory) {
+      return res.status(404).json({ error: "Pharmacy inventory not found" });
+    }
+    res.status(200).json({ inventory: inventory.inventory });
+  } catch (err) {
+    console.error("Error fetching inventory:", err);
+    res.status(500).json({ error: "Internal error while fetching inventory" });
+  }
+});
+
 export default router;
