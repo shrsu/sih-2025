@@ -1,7 +1,7 @@
 // server.js
 import express from "express";
 import dotenv from "dotenv";
-import connectToMongo from "./mongoConfig.js";
+import connectToMongo from "./src/configs/mongoConfig.js";
 
 // Load env variables
 dotenv.config();
@@ -18,5 +18,5 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server listening at http://localhost:${PORT}`);
+  console.log(`Server listening at Port${PORT}`);
 });
