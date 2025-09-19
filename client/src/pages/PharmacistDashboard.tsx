@@ -214,33 +214,25 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
         <ModeToggle />
       </header>
       <div className="mx-auto max-w-7xl px-6 py-6 w-full">
-        {/* Summary */}
+        {/* NAV */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-primary text-primary-foreground shadow-xs">
-              <Package className="h-8 w-8" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">Pharma Dashboard</h1>
-              <p className="text-sm text-muted-foreground">
-                Medicine Stock Management System
-              </p>
-            </div>
+        <div className="flex items-center space-x-3">
+          <div className="p-2 rounded-lg bg-primary text-primary-foreground shadow-xs">
+            <Package className="h-8 w-8" />
           </div>
-          <div className="flex space-x-3">
-            <div className="rounded-lg px-4 py-2 shadow-2xs bg-secondary text-secondary-foreground">
-              Total Medicines: {medicines.length}
-            </div>
-            <div className="rounded-lg px-4 py-2 shadow-2xs bg-accent text-accent-foreground">
-              Total Value: {formatCurrency(totalValue)}
-            </div>
-            {lowStockMedicines.length > 0 && (
-              <div className="rounded-lg px-4 py-2 shadow-2xs bg-destructive text-destructive-foreground">
-                Low Stock: {lowStockMedicines.length}
-              </div>
-            )}
+          <div>
+            <h1 className="text-2xl font-bold">Pharma Dashboard</h1>
+            <p className="text-sm text-muted-foreground">
+              Medicine Availability Management System
+            </p>
           </div>
         </div>
+        <div className="rounded-lg px-4 py-2 shadow-2xs bg-accent text-accent-foreground">
+          Total Available Medicines:{" "}
+          {medicines.filter((m) => m.stock > 0).length}
+        </div>
+        </div>
+
         {/* Tabs */}
         <div className="bg-card rounded-xl shadow-sm p-1 mb-6 border">
           <div className="flex space-x-1">
@@ -304,21 +296,6 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
                 </button>
               </div>
             </div>
-            {/* Alerts */}
-            {lowStockMedicines.length > 0 && (
-              <div className="bg-destructive/10 border border-destructive rounded-lg p-4 mb-6">
-                <div className="flex items-center space-x-2 mb-2">
-                  <AlertTriangle className="h-5 w-5 text-destructive" />
-                  <h3 className="text-destructive font-semibold">
-                    Low Stock Alert
-                  </h3>
-                </div>
-                <p className="text-destructive text-sm">
-                  {lowStockMedicines.length} medicine(s) are running low on
-                  stock: {lowStockMedicines.map((m) => m.name).join(", ")}
-                </p>
-              </div>
-            )}
             {/* Medicines */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredMedicines.map((m) => (
@@ -351,22 +328,18 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
                     </div>
                     <div className="space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Stock:</span>
+                        <span className="text-muted-foreground">Availability:</span>
                         <span
                           className={`font-semibold ${
-                            m.stock <= m.minStock
-                              ? "text-destructive"
-                              : "text-green-600"
+                            m.stock > 0 ? "text-green-600" : "text-destructive"
                           }`}
                         >
-                          {m.stock} units
+                          {m.stock > 0 ? "Available" : "Unavailable"}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Price:</span>
-                        <span className="font-semibold">
-                          {formatCurrency(m.price)}
-                        </span>
+                        <span className="font-semibold">{formatCurrency(m.price)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Expiry:</span>
@@ -381,6 +354,7 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
                         <span className="text-sm">{m.supplier}</span>
                       </div>
                     </div>
+
                   </div>
                 </div>
               ))}
