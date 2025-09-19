@@ -1,22 +1,32 @@
 // server.js
 import express from "express";
 import dotenv from "dotenv";
-import connectToMongo from "./src/configs/mongoConfig.js";
+import cors from "cors";
 
-// Load env variables
 dotenv.config();
 
-// Connect to DB
-connectToMongo();
+import connectToMongo from "./src/configs/mongoConfig.js";
+import { startCron } from "./src/cron/processCalls.js";
+import reconRoutes from "./src/routes/reconRoutes.js";
+import registerRoutes from "./src/routes/registerRoutes.js"; 
+import inventoryRoutes from "./src/routes/pharmaRoutes.js";
 
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Server is running with MongoDB!");
 });
 
-const PORT = process.env.PORT || 3000;
+app.use("/api", reconRoutes);
+app.use("/api", registerRoutes);
+app.use("/api", inventoryRoutes);
+
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log(`Server listening at Port${PORT}`);
+  connectToMongo();
+  console.log(`Server listening at http://localhost:${PORT}`);
+  startCron();
 });
