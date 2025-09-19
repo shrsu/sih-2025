@@ -141,4 +141,28 @@ router.get("/inventory", async (req, res) => {
   }
 });
 
+router.get("/summaries/:phoneNumber", async (req, res) => {
+  const { phoneNumber } = req.params;
+
+  if (!phoneNumber) {
+    return res.status(400).json({ error: "Phone number is required" });
+  }
+
+  try {
+    const summary = await Summary.findOne({ phoneNumber: "+91" + phoneNumber });
+    if (!summary) {
+      return res.status(404).json({ error: "No summary found for this phone number" });
+    }
+
+    res.json({
+      isActive: summary.isActive,
+      prescriptions: summary.aiAnalysis?.map((a) => a.prescriptionId) || [],
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 export default router;
