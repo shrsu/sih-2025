@@ -14,27 +14,16 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useUserContext } from "@/contexts/UserContext";
+import { useLoggedInEntity } from "@/contexts/LoggedInEntityContext";
+import { type LoggedInEntity } from "@/contexts/LoggedInEntityContext";
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-  };
-}) {
+export function NavUser({entity}: {entity: LoggedInEntity | null}) {
   const { isMobile } = useSidebar();
-  const { setUser } = useUserContext();
   const navigate = useNavigate();
+  const { setEntity } = useLoggedInEntity();
 
   const handleLogout = () => {
-    setUser({
-      loggedIn: false,
-      name: "",
-      email: "",
-      role: "",
-    });
+    setEntity(null);
     navigate("/");
   };
 
@@ -52,8 +41,7 @@ export function NavUser({
                 <AvatarFallback className="rounded-lg">BP</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-medium">{entity?.name}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -70,8 +58,7 @@ export function NavUser({
                 <AvatarFallback className="rounded-lg">BP</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-medium">{entity?.name}</span>
               </div>
             </div>
 

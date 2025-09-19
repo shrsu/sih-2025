@@ -5,12 +5,12 @@ import DoctorLoginPage from "./pages/DoctorLoginPage";
 import PharmacistLoginPage from "./pages/PharmacistLoginPage";
 import PharmacistDashboard from "./pages/PharmacistDashboard";
 import { ThemeProvider } from "./themes/theme-provider";
-import { UserProvider } from "./contexts/UserContext";
+import { LoggedInEntityProvider } from "@/contexts/LoggedInEntityContext";
 
 function App() {
   return (
     <ThemeProvider>
-      <UserProvider>
+      <LoggedInEntityProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -23,7 +23,7 @@ function App() {
             />
           </Routes>
         </BrowserRouter>
-      </UserProvider>
+      </LoggedInEntityProvider>
     </ThemeProvider>
   );
 }

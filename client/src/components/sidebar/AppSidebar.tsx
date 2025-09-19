@@ -15,7 +15,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 
-import { useUserContext } from "@/contexts/UserContext";
+import { useLoggedInEntity } from "@/contexts/LoggedInEntityContext";
 
 const navItems = [
   {
@@ -41,7 +41,7 @@ const navItems = [
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useUserContext();
+  const { entity } = useLoggedInEntity();
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -52,7 +52,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} /> {/* ← context-driven user */}
+        <NavUser entity={entity} /> {/* ← context-driven user */}
       </SidebarFooter>
     </Sidebar>
   );
