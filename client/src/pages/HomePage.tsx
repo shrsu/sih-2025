@@ -7,10 +7,10 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Link } from "react-router-dom";
-import { useUserContext } from "@/contexts/UserContext"; // 👈 import context
+import { useLoggedInEntity } from "@/contexts/LoggedInEntityContext";
 
 function HomePage() {
-  const { user } = useUserContext(); // 👈 get user from context
+  const { entity } = useLoggedInEntity();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -25,14 +25,14 @@ function HomePage() {
 
         <div className="flex gap-4 items-center">
           {/* Conditional based on login */}
-          {user.loggedIn ? (
+          {entity?.loggedIn ? (
             <>
-              {user.role === "doctor" && (
+              {entity.role === "doctor" && (
                 <Button asChild>
                   <Link to="/doctor/dashboard">Doctor Dashboard</Link>
                 </Button>
               )}
-              {user.role === "pharmacist" && (
+              {entity.role === "pharmacist" && (
                 <Button asChild>
                   <Link to="/pharmacist/dashboard">Pharmacist Dashboard</Link>
                 </Button>

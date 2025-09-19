@@ -26,7 +26,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-import { useUserContext } from "@/contexts/UserContext";
+import { useLoggedInEntity } from "@/contexts/LoggedInEntityContext";
 
 const doctorLoginSchema = z.object({
   userId: z.string().min(1, "User ID is required"),
@@ -38,19 +38,19 @@ type DoctorLoginForm = z.infer<typeof doctorLoginSchema>;
 function DoctorLoginPage() {
   const navigate = useNavigate();
   const [showDialog, setShowDialog] = useState(false);
-  const { user, setUser } = useUserContext();
+  const { entity, setEntity } = useLoggedInEntity();
 
   useEffect(() => {
-    if (user.loggedIn) {
-      if (user.role === "doctor") {
+    if (entity?.loggedIn) {
+      if (entity.role === "doctor") {
         navigate("/doctor/dashboard");
-      } else if (user.role === "pharmacist") {
+      } else if (entity.role === "pharmacist") {
         navigate("/pharmacist/dashboard");
       } else {
         navigate("/");
       }
     }
-  }, [user, navigate]);
+  }, [entity, navigate]);
 
   const form = useForm<DoctorLoginForm>({
     resolver: zodResolver(doctorLoginSchema),
@@ -60,18 +60,38 @@ function DoctorLoginPage() {
     },
   });
 
-  const onSubmit = (values: DoctorLoginForm) => {
+  const onSubmit = async (values: DoctorLoginForm) => {
     const { userId, password } = values;
 
-    if (userId === "5167399" && password === "5167399") {
-      setUser({
-        loggedIn: true,
-        name: "Balram Pandey",
-        email: "dr.balram.pandey@nirmaya.in",
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URI}/login/doctor`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: userId, password }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed");
+      }
+
+      const doctorData = {
+        id: data.doctor.id,
+        name: data.doctor.name,
         role: "doctor",
-      });
+        loggedIn: true,
+      };
+
+      localStorage.setItem("nirmaya-entity", JSON.stringify(doctorData));
+      setEntity(doctorData);
+
       navigate("/doctor/dashboard");
-    } else {
+    } catch (err) {
+      console.error("Login error:", err);
       setShowDialog(true);
     }
   };

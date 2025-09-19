@@ -5,6 +5,8 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/AppSidebar";
 import { Button } from "@/components/ui/button";
 import PatientsSection from "@/components/doctor-dashboard/PatientsSection";
+import { useNavigate } from "react-router-dom";
+import { useLoggedInEntity } from "@/contexts/LoggedInEntityContext";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URI;
 
@@ -21,11 +23,20 @@ const phoneMetadata: Record<
 };
 
 function DoctorDashboard() {
-  const sidebarState: boolean = Cookies.get("sidebar_state") === "true";
+  const navigate = useNavigate();
+  const { entity } = useLoggedInEntity();
 
+  const sidebarState: boolean = Cookies.get("sidebar_state") === "true";
   const [enrichedCalls, setEnrichedCalls] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const existingIdsRef = useRef<Set<string>>(new Set());
+
+  // 🔐 Redirect if not logged in as doctor
+  useEffect(() => {
+    if (!entity?.loggedIn || entity.role !== "doctor") {
+      navigate("/doctor/login");
+    }
+  }, [entity, navigate]);
 
   useEffect(() => {
     const fetchCalls = async () => {
