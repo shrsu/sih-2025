@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Aarav Kumar",
+    "age": 34,
+    "gender": "Male",
+    "date": "2025-09-17",
+    "report": "Patient presented with elevated blood pressure and mild dizziness. BP reading was 148/96 mmHg. No signs of acute distress. Recommended dietary modifications, reduction of sodium intake, and initiation of a low-dose antihypertensive. Scheduled follow-up in 2 weeks for re-evaluation."
+  },
+  {
+    "name": "Sneha Mehta",
+    "age": 28,
+    "gender": "Female",
+    "date": "2025-09-16",
+    "report": "Routine annual physical examination. All vital signs within normal range. Laboratory results including CBC, lipid profile, and blood glucose were normal. Patient reports no significant symptoms or concerns. Advised to maintain current healthy lifestyle. Next check-up in one year."
+  },
+  {
+    "name": "Rahul Verma",
+    "age": 42,
+    "gender": "Male",
+    "date": "2025-09-15",
+    "report": "Patient visited for evaluation of fatigue and weight gain. Blood tests revealed elevated LDL cholesterol (182 mg/dL) and borderline high triglycerides. Recommended dietary adjustments, increased physical activity, and started on atorvastatin 10mg daily. Reassessment in 1 month."
+  },
+  {
+    "name": "Priya Sharma",
+    "age": 31,
+    "gender": "Female",
+    "date": "2025-09-14",
+    "report": "Chief complaint: recurrent headaches for the past 2 months. Headaches are tension-type, mostly in the evenings. Neurological examination unremarkable. MRI brain ordered to rule out secondary causes. Prescribed acetaminophen PRN and advised stress management techniques."
+  },
+  {
+    "name": "Ananya Joshi",
+    "age": 25,
+    "gender": "Female",
+    "date": "2025-09-13",
+    "report": "Patient experienced a mild allergic reaction after consuming seafood. Symptoms included rash and mild swelling around the lips. No respiratory involvement. Treated with oral antihistamines. Patient advised to avoid shellfish and carry an allergy alert card. Referred to allergist for further evaluation."
+  }
+]
