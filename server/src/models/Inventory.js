@@ -10,6 +10,10 @@ const medicineSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  name: {
+    type: String,
+    required: true,
+  },
   requires_prescription: {
     type: Boolean,
     default: false,
