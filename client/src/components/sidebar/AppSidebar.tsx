@@ -1,9 +1,4 @@
-import {
-  BriefcaseMedical,
-  CalendarClock,
-  ClipboardPlus,
-  Pill,
-} from "lucide-react";
+import { BriefcaseMedical } from "lucide-react";
 
 import { NavMain } from "./NavMain";
 import { NavUser } from "./NavUser";
@@ -15,7 +10,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 
-import { useUserContext } from "@/contexts/UserContext";
+import { useLoggedInEntity } from "@/contexts/LoggedInEntityContext";
 
 const navItems = [
   {
@@ -23,25 +18,10 @@ const navItems = [
     url: "#",
     icon: BriefcaseMedical,
   },
-  {
-    title: "Medicines",
-    url: "#",
-    icon: Pill,
-  },
-  {
-    title: "Time Slots",
-    url: "#",
-    icon: CalendarClock,
-  },
-  {
-    title: "Reports",
-    url: "#",
-    icon: ClipboardPlus,
-  },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useUserContext();
+  const { entity } = useLoggedInEntity();
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -52,7 +32,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} /> {/* ← context-driven user */}
+        <NavUser entity={entity} />
       </SidebarFooter>
     </Sidebar>
   );

@@ -1,68 +1,45 @@
-import { useEffect, useState, useRef } from "react";
-import { ModeToggle } from "@/themes/mode-toggle";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
+import axios from "axios";
+
+import { ModeToggle } from "@/themes/mode-toggle";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/AppSidebar";
 import { Button } from "@/components/ui/button";
-import PatientsSection from "@/components/doctor-dashboard/PatientsSection";
+import TicketsSection from "@/components/doctor-dashboard/TicketsSection";
+import { useLoggedInEntity } from "@/contexts/LoggedInEntityContext";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URI;
 
-const phoneMetadata: Record<
-  string,
-  { name: string; gender: "male" | "female" }
-> = {
-  "+919317524556": { name: "Sujal Shrestha", gender: "male" },
-  "+918199075665": { name: "Ananya Tewari", gender: "female" },
-  "+919882716924": { name: "Abhinandan Gupta", gender: "male" },
-  "+917018224197": { name: "Anshul Kashyap", gender: "male" },
-  "+919882182880": { name: "Satyam Sharma", gender: "male" },
-  "+918295057353": { name: "Swasti Mohanty", gender: "female" },
-};
-
 function DoctorDashboard() {
+  const navigate = useNavigate();
+  const { entity } = useLoggedInEntity();
   const sidebarState: boolean = Cookies.get("sidebar_state") === "true";
 
-  const [enrichedCalls, setEnrichedCalls] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const existingIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    const fetchCalls = async () => {
+    if (!entity?.loggedIn || entity.role !== "doctor") {
+      navigate("/doctor/login");
+    }
+  }, [entity, navigate]);
+
+  useEffect(() => {
+    const fetchTickets = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/calls/completed`);
-        const data = await res.json();
-
-        const newEnriched = data
-          .filter((call: any) => !existingIdsRef.current.has(call._id))
-          .map((call: any) => {
-            const meta = phoneMetadata[call.phoneNumber];
-            if (!meta || !call.aiAnalysis) return null;
-
-            existingIdsRef.current.add(call._id);
-
-            return {
-              _id: call._id,
-              name: meta.name,
-              gender: meta.gender,
-              aiAnalysis: call.aiAnalysis,
-              createdAt: call.createdAt,
-            };
-          })
-          .filter(Boolean);
-
-        if (newEnriched.length > 0) {
-          setEnrichedCalls((prev) => [...prev, ...newEnriched]);
-        }
+        const res = await axios.get(`${BASE_URL}/tickets`);
+        setTickets(res.data);
       } catch (error) {
-        console.error("Failed to fetch completed calls:", error);
+        console.error("Failed to fetch tickets:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    const interval = setInterval(fetchCalls, 5000);
-    fetchCalls();
+    const interval = setInterval(fetchTickets, 5000);
+    fetchTickets();
 
     return () => clearInterval(interval);
   }, []);
@@ -83,7 +60,7 @@ function DoctorDashboard() {
             <span className="text-sm">Loading patients...</span>
           </div>
         ) : (
-          <PatientsSection calls={enrichedCalls} />
+          <TicketsSection tickets={tickets} />
         )}
       </main>
     </SidebarProvider>

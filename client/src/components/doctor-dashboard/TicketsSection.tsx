@@ -1,30 +1,39 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PatientCard } from "./PatientCard";
+import { TicketCard } from "./PatientCard";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import ReportSection from "./ReportSection";
+import SummariesSection from "./SummariesSection";
 
-type EnrichedCall = {
-  _id: string;
-  name: string;
-  gender: "male" | "female";
+type Summary = {
+  id: string;
   aiAnalysis: {
     shortSummary: string;
     detailedSummary: string;
     transcript: string;
   };
-  createdAt?: string;
+  prescription?: {
+    text: string;
+    prescribedBy?: string;
+  };
 };
 
-function PatientsSection({ calls }: { calls: EnrichedCall[] }) {
-  const [selectedPatient, setSelectedPatient] = useState<EnrichedCall | null>(
-    null
-  );
+type Ticket = {
+  _id: string;
+  name: string;
+  gender: "male" | "female";
+  phoneNumber: string;
+  createdAt?: string;
+  summaries: Summary[];
+  isActive: boolean;
+};
+
+function TicketsSection({ tickets }: { tickets: Ticket[] }) {
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
 
   return (
     <div className="h-[calc(100vh-64px)] border-t">
@@ -34,24 +43,21 @@ function PatientsSection({ calls }: { calls: EnrichedCall[] }) {
             <div className="sticky top-0 z-10 bg-background px-8 py-6">
               <h1 className="text-2xl font-bold text-primary">Patients</h1>
             </div>
-            <div className="flex-1 overflow-y-auto p-8 pt-6">
-              <div
-              className="flex gap-6"
-              >
-                {calls.map((call) => (
-                  <PatientCard
-                    key={call._id}
-                    name={call.name}
-                    gender={call.gender}
-                    
+            <div className="flex-1 w-full overflow-y-auto p-8 pt-6">
+              <div className="flex w-full gap-6 flex-wrap">
+                {tickets.map((ticket) => (
+                  <TicketCard
+                    key={ticket._id}
+                    name={ticket.name}
+                    gender={ticket.gender}
                     date={
-                      call.createdAt
-                        ? new Date(call.createdAt).toLocaleDateString()
+                      ticket.createdAt
+                        ? new Date(ticket.createdAt).toLocaleDateString()
                         : new Date(
-                            parseInt(call._id.substring(0, 8), 16) * 1000
+                            parseInt(ticket._id.substring(0, 8), 16) * 1000
                           ).toLocaleDateString()
                     }
-                    onViewReport={() => setSelectedPatient(call)}
+                    onViewReport={() => setSelectedTicket(ticket)}
                   />
                 ))}
               </div>
@@ -59,7 +65,7 @@ function PatientsSection({ calls }: { calls: EnrichedCall[] }) {
           </div>
         </ResizablePanel>
 
-        {selectedPatient && (
+        {selectedTicket && (
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={30} className="h-full">
@@ -71,13 +77,13 @@ function PatientsSection({ calls }: { calls: EnrichedCall[] }) {
                   <Button
                     size="icon"
                     variant="destructive"
-                    onClick={() => setSelectedPatient(null)}
+                    onClick={() => setSelectedTicket(null)}
                   >
                     <X />
                   </Button>
                 </div>
                 <div className="flex-1 overflow-y-auto">
-                  <ReportSection patient={selectedPatient} />
+                  <SummariesSection ticket={selectedTicket} />
                 </div>
               </div>
             </ResizablePanel>
@@ -88,4 +94,4 @@ function PatientsSection({ calls }: { calls: EnrichedCall[] }) {
   );
 }
 
-export default PatientsSection;
+export default TicketsSection;

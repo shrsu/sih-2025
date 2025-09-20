@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ModeToggle } from "@/themes/mode-toggle";
 import { HeartPulse } from "lucide-react";
-import { useUserContext } from "@/contexts/UserContext";
+import { useLoggedInEntity } from "@/contexts/LoggedInEntityContext";
 
 const pharmacistLoginSchema = z.object({
   userId: z.string().min(1, "Pharmacy ID is required"),
@@ -27,19 +27,19 @@ type PharmacistLoginForm = z.infer<typeof pharmacistLoginSchema>;
 
 function PharmacistLoginPage() {
   const navigate = useNavigate();
-  const { user, setUser } = useUserContext();
+  const { entity, setEntity } = useLoggedInEntity();
 
   useEffect(() => {
-    if (user.loggedIn) {
-      if (user.role === "pharmacist") {
+    if (entity?.loggedIn) {
+      if (entity.role === "pharmacist") {
         navigate("/pharmacist/dashboard");
-      } else if (user.role === "doctor") {
+      } else if (entity.role === "doctor") {
         navigate("/doctor/dashboard");
       } else {
         navigate("/");
       }
     }
-  }, [user, navigate]);
+  }, [entity, navigate]);
 
   const form = useForm<PharmacistLoginForm>({
     resolver: zodResolver(pharmacistLoginSchema),
@@ -72,8 +72,7 @@ function PharmacistLoginPage() {
         id: data.pharmacy.id,
         name: data.pharmacy.name,
         role: "pharmacist",
-        location_area: data.pharmacy.location_area,
-        email: "", // optional
+        location: data.pharmacy.location_area,
         loggedIn: true,
       };
 
@@ -81,7 +80,7 @@ function PharmacistLoginPage() {
       localStorage.setItem("nirmaya-user", JSON.stringify(userData));
 
       // Update context
-      setUser(userData);
+      setEntity(userData);
 
       // Navigate to dashboard
       navigate("/pharmacist/dashboard");
