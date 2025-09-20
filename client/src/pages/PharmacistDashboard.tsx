@@ -133,12 +133,26 @@ const PharmacistDashboard: React.FC = () => {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URI}/inventory/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pharmacy_id: pharmacyId, medicine: newMedicine }),
+        body: JSON.stringify({
+          pharmacy_id: pharmacyId,
+          medicine: {
+            name: newMedicine.name,
+            category: newMedicine.category,
+            requires_prescription: newMedicine.requiresPrescription,
+            status: newMedicine.status,
+          },
+        }),
       });
       const data = await res.json();
 
       if (res.ok) {
-        setMedicines(data.inventory);
+        const normalized = (data.inventory || []).map((m: any) => ({
+          name: m.name,
+          category: m.category,
+          requiresPrescription: m.requires_prescription,
+          status: m.status,
+        }));
+        setMedicines(normalized);
         setShowModal(false);
         setNewMedicine({
           name: "",
@@ -164,13 +178,24 @@ const PharmacistDashboard: React.FC = () => {
         body: JSON.stringify({
           pharmacy_id: pharmacyId,
           name: selectedMedicine.name,
-          updates: newMedicine,
+          updates: {
+            name: newMedicine.name,
+            category: newMedicine.category,
+            requires_prescription: newMedicine.requiresPrescription,
+            status: newMedicine.status,
+          },
         }),
       });
       const data = await res.json();
 
       if (res.ok) {
-        setMedicines(data.inventory);
+        const normalized = (data.inventory || []).map((m: any) => ({
+          name: m.name,
+          category: m.category,
+          requiresPrescription: m.requires_prescription,
+          status: m.status,
+        }));
+        setMedicines(normalized);
         setShowModal(false);
       } else {
         alert(data.error || "Failed to update medicine");
@@ -208,15 +233,15 @@ const PharmacistDashboard: React.FC = () => {
   return (
     <main className="flex w-full flex-col min-h-screen bg-background dark:bg-gray-900">
 
-<header className="flex w-full justify-between items-center px-6 py-4 sticky top-0 z-10 bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md rounded-b-lg">
+<header className="flex w-full justify-between items-center px-6 py-4 sticky top-0 z-10 bg-card border-b shadow-sm">
   {/* Left - Title */}
   <div className="flex items-center space-x-3">
-    <Package className="w-8 h-8 text-white" />
+    <Package className="w-8 h-8 text-primary" />
     <div>
-      <h1 className="text-2xl font-extrabold tracking-tight drop-shadow-md">
+      <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
         Pharma Dashboard
       </h1>
-      <p className="text-sm opacity-80">Manage your inventory & sales</p>
+      <p className="text-sm text-muted-foreground">Manage your inventory & sales</p>
     </div>
   </div>
 
@@ -224,15 +249,15 @@ const PharmacistDashboard: React.FC = () => {
   <div className="flex items-center space-x-6">
     <div className="flex flex-col text-right">
       <div className="flex items-center justify-end gap-2">
-        <User className="w-5 h-5 text-white/80" />
-        <span className="font-semibold text-white">{pharmacyDetails.name}</span>
+        <User className="w-5 h-5 text-muted-foreground" />
+        <span className="font-semibold text-foreground">{pharmacyDetails.name}</span>
       </div>
-      <div className="flex items-center justify-end gap-4 text-sm text-white/70 mt-1">
+      <div className="flex items-center justify-end gap-4 text-sm text-muted-foreground mt-1">
         <span className="flex items-center gap-1">
-          <Briefcase className="w-4 h-4" /> {pharmacyDetails.role}
+          <Briefcase className="w-4 h-4 text-muted-foreground" /> {pharmacyDetails.role}
         </span>
         <span className="flex items-center gap-1">
-          <MapPin className="w-4 h-4" /> {pharmacyDetails.location}
+          <MapPin className="w-4 h-4 text-muted-foreground" /> {pharmacyDetails.location}
         </span>
       </div>
     </div>
@@ -375,7 +400,7 @@ const PharmacistDashboard: React.FC = () => {
                             : "text-red-600"
                         }`}
                       >
-                        {m.status}
+                        {m.status === "in stock" ? "In Stock" : "Out of Stock"}
                       </span>
                     </div>
                   </div>
