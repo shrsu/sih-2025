@@ -4,6 +4,26 @@ import Summary from "../models/Summary.js";
 
 const router = express.Router();
 
+// backend
+router.get("/inventory", async (req, res) => {
+  const { pharmacy_id } = req.query; // ✅ instead of req.body
+  if (!pharmacy_id) {
+    return res.status(400).json({ error: "pharmacy_id is required" });
+  }
+
+  try {
+    const inventory = await Inventory.findOne({ pharmacy_id });
+    if (!inventory) {
+      return res.status(404).json({ error: "Pharmacy inventory not found" });
+    }
+    res.status(200).json({ inventory: inventory.inventory });
+  } catch (err) {
+    console.error("Error fetching inventory:", err);
+    res.status(500).json({ error: "Internal error while fetching inventory" });
+  }
+});
+
+
 router.post("/inventory/add", async (req, res) => {
   const { pharmacy_id, medicine } = req.body;
 
@@ -35,31 +55,31 @@ router.post("/inventory/add", async (req, res) => {
 });
 
 router.patch("/inventory/update", async (req, res) => {
-  const { pharmacy_id, name, updates, phoneNumber } = req.body;
+  const { pharmacy_id, name, updates } = req.body;
 
-  if (!pharmacy_id || !name || !phoneNumber) {
-    return res.status(400).json({ error: "pharmacy_id, name, and phoneNumber are required" });
+  if (!pharmacy_id || !name) {
+    return res.status(400).json({
+      error: "pharmacy_id and name are required",
+    });
   }
 
   try {
-    const user = await Summary.findOne({ phoneNumber });
-    if (!user || user.isActive !== "true") {
-      return res.status(403).json({ error: "Ticket is not active. Cannot update inventory." });
+    // Dynamically map updates to positional array
+    const setUpdates = {};
+    for (let key in updates) {
+      setUpdates[`inventory.$.${key}`] = updates[key];
     }
 
     const updated = await Inventory.findOneAndUpdate(
-      {
-        pharmacy_id,
-        "inventory.name": name,
-      },
-      {
-        $set: updates,
-      },
+      { pharmacy_id, "inventory.name": name },
+      { $set: setUpdates },
       { new: true }
     );
 
     if (!updated) {
-      return res.status(404).json({ error: "Medicine not found in inventory" });
+      return res
+        .status(404)
+        .json({ error: "Medicine not found in inventory" });
     }
 
     res.status(200).json({
@@ -71,6 +91,8 @@ router.patch("/inventory/update", async (req, res) => {
     res.status(500).json({ error: "Failed to update inventory item" });
   }
 });
+
+
 
 router.delete("/inventory/remove", async (req, res) => {
   const { pharmacy_id, name } = req.body;
