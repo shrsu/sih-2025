@@ -1,9 +1,4 @@
-import {
-  BriefcaseMedical,
-  CalendarClock,
-  ClipboardPlus,
-  Pill,
-} from "lucide-react";
+import { BriefcaseMedical } from "lucide-react";
 
 import { NavMain } from "./NavMain";
 import { NavUser } from "./NavUser";
@@ -23,21 +18,6 @@ const navItems = [
     url: "#",
     icon: BriefcaseMedical,
   },
-  {
-    title: "Medicines",
-    url: "#",
-    icon: Pill,
-  },
-  {
-    title: "Time Slots",
-    url: "#",
-    icon: CalendarClock,
-  },
-  {
-    title: "Reports",
-    url: "#",
-    icon: ClipboardPlus,
-  },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -52,7 +32,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser entity={entity} /> {/* ← context-driven user */}
+        <NavUser entity={entity} />
       </SidebarFooter>
     </Sidebar>
   );

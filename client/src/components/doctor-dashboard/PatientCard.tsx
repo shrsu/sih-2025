@@ -7,21 +7,21 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-interface PatientCardProps {
+interface TicketCardProps {
   name: string;
   gender: string;
   date: string;
   onViewReport: () => void;
 }
 
-export function PatientCard({
+export function TicketCard({
   name,
   gender,
   date,
   onViewReport,
-}: PatientCardProps) {
+}: TicketCardProps) {
   return (
-    <Card className="w-full max-w-md shadow-sm border-border">
+    <Card className="w-full min-w-sm max-w-md shadow-sm border-border">
       <CardHeader>
         <CardTitle className="text-xl font-semibold text-primary">
           {name}
