@@ -31,7 +31,7 @@ export function TicketCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="mt-2 text-sm text-muted-foreground space-y-2">
-        <div className="flex justify-between">
+        <div className="flex gap-4">
           <span className="font-medium text-foreground">Gender</span>
           <span>{gender}</span>
         </div>

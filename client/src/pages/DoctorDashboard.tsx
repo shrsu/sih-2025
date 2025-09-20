@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
@@ -19,28 +19,36 @@ function DoctorDashboard() {
 
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const firstLoadDone = useRef(false);
 
   useEffect(() => {
-    if (!entity?.loggedIn || entity.role !== "doctor") {
+    if (entity === null) return;
+    if (!entity.loggedIn || entity.role !== "doctor") {
       navigate("/doctor/login");
     }
   }, [entity, navigate]);
 
   useEffect(() => {
+    let interval: NodeJS.Timeout;
+
     const fetchTickets = async () => {
+      console.log("Polling...");
       try {
         const res = await axios.get(`${BASE_URL}/tickets`);
         setTickets(res.data);
       } catch (error) {
         console.error("Failed to fetch tickets:", error);
       } finally {
-        setLoading(false);
+        if (!firstLoadDone.current) {
+          setLoading(false);
+          firstLoadDone.current = true;
+        }
       }
     };
 
-    const interval = setInterval(fetchTickets, 5000);
     fetchTickets();
 
+    interval = setInterval(fetchTickets, 5000);
     return () => clearInterval(interval);
   }, []);
 
