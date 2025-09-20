@@ -92,4 +92,23 @@ router.get("/tickets/:id", async (req, res) => {
   }
 });
 
+router.get("/tickets/phone/:phoneNumber", async (req, res) => {
+  const { phoneNumber } = req.params;
+
+  try {
+    const tickets = await Ticket.find({ phoneNumber });
+
+    if (!tickets || tickets.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No tickets found for this phone number" });
+    }
+
+    res.status(200).json(tickets);
+  } catch (err) {
+    console.error("Error fetching tickets by phone number:", err);
+    res.status(500).json({ error: "Failed to fetch tickets" });
+  }
+});
+
 export default router;

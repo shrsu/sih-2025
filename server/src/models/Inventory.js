@@ -10,7 +10,7 @@ const medicineSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  name: {
+  category: {
     type: String,
     required: true,
   },
