@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 interface TicketCardProps {
+  id: string;
   name: string;
   gender: string;
   date: string;
@@ -15,6 +16,7 @@ interface TicketCardProps {
 }
 
 export function TicketCard({
+  id,
   name,
   gender,
   date,
@@ -34,6 +36,10 @@ export function TicketCard({
         <div className="flex gap-4">
           <span className="font-medium text-foreground">Gender</span>
           <span>{gender}</span>
+        </div>
+        <div className="flex gap-4">
+          <span className="font-medium text-foreground">Ticket ID</span>
+          <span className="break-all">{id}</span>
         </div>
         <div className="pt-4 flex w-full justify-end">
           <Button onClick={onViewReport} variant="outline">
