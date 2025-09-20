@@ -120,7 +120,10 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
   const [nirmayPhone, setNirmayPhone] = useState("");
   const [nirmayData, setNirmayData] = useState<{ isActive: string; prescriptions: string[] } | null>(null);
   const [loadingNirmay, setLoadingNirmay] = useState(false);
-
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
 
   const [formData, setFormData] = useState<Omit<Medicine, "id">>({
     name: "",
@@ -171,7 +174,7 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
     }
     setShowModal(true);
   };
-  
+
   const filteredMedicines = medicines.filter((med) => {
     const matchesSearch =
       med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -216,21 +219,21 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
       <div className="mx-auto max-w-7xl px-6 py-6 w-full">
         {/* NAV */}
         <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-primary text-primary-foreground shadow-xs">
-            <Package className="h-8 w-8" />
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg bg-primary text-primary-foreground shadow-xs">
+              <Package className="h-8 w-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Pharma Dashboard</h1>
+              <p className="text-sm text-muted-foreground">
+                Medicine Availability Management System
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">Pharma Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
-              Medicine Availability Management System
-            </p>
+          <div className="rounded-lg px-4 py-2 shadow-2xs bg-accent text-accent-foreground">
+            Total Available Medicines:{" "}
+            {medicines.filter((m) => m.stock > 0).length}
           </div>
-        </div>
-        <div className="rounded-lg px-4 py-2 shadow-2xs bg-accent text-accent-foreground">
-          Total Available Medicines:{" "}
-          {medicines.filter((m) => m.stock > 0).length}
-        </div>
         </div>
 
         {/* Tabs */}
@@ -253,7 +256,6 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
                 <tab.icon className="h-5 w-5" />
                 <span>{tab.label}</span>
               </button>
-              
             ))}
           </div>
         </div>
@@ -462,35 +464,103 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
               />
             </div>
 
-            <button
-              className="bg-primary hover:brightness-95 text-primary-foreground px-6 py-2 rounded-lg transition-colors mb-4"
-              onClick={async () => {
-                if (!nirmayPhone.trim()) {
-                  alert("Enter a phone number");
-                  return;
-                }
-                setLoadingNirmay(true);
-                try {
-                  const res = await fetch(`http://localhost:8080/api/summaries/${nirmayPhone}`);
-                  const data = await res.json();
-                  if (!res.ok) {
-                    alert(data.error || "Failed to fetch data");
-                    setNirmayData(null);
-                  } else {
-                    setNirmayData({
-                      isActive: data.isActive,
-                      prescriptions: data.prescriptions || [],
-                    });
+            {/* OTP Actions */}
+            {!otpSent && (
+              <button
+                className="bg-primary hover:brightness-95 text-primary-foreground px-6 py-2 rounded-lg transition-colors mb-4"
+                onClick={async () => {
+                  if (!nirmayPhone.trim()) {
+                    alert("Enter a phone number");
+                    return;
                   }
-                } catch (err) {
-                  alert("Error fetching data");
-                  setNirmayData(null);
-                }
-                setLoadingNirmay(false);
-              }}
-            >
-              Check Status
-            </button>
+                  try {
+                    const res = await fetch("http://localhost:8080/api/otp/send", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ phoneNumber: nirmayPhone }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                      alert(data.error || "Failed to send OTP");
+                      return;
+                    }
+                    setOtpSent(true);
+                    alert("OTP sent successfully");
+                  } catch (e) {
+                    alert("Failed to send OTP");
+                  }
+                }}
+              >
+                Send OTP
+              </button>
+            )}
+
+            {otpSent && !otpVerified && (
+              <div className="mb-4">
+                <label className="block mb-1 font-medium">Enter OTP</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    className="flex-1 px-4 py-2 border rounded-lg"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value)}
+                  />
+                  <button
+                    className="bg-primary hover:brightness-95 text-primary-foreground px-6 py-2 rounded-lg transition-colors"
+                    onClick={async () => {
+                      if (!otpCode.trim()) {
+                        alert("Enter the OTP");
+                        return;
+                      }
+                      setOtpVerifying(true);
+                      try {
+                        const res = await fetch("http://localhost:8080/api/otp/verify", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ phoneNumber: nirmayPhone, code: otpCode }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) {
+                          alert(data.error || "OTP verification failed");
+                          setOtpVerified(false);
+                          return;
+                        }
+                        setOtpVerified(true);
+                        // After successful verification, fetch summaries
+                        setLoadingNirmay(true);
+                        try {
+                          const res2 = await fetch(`http://localhost:8080/api/summaries/${nirmayPhone}`);
+                          const d2 = await res2.json();
+                          if (!res2.ok) {
+                            alert(d2.error || "Failed to fetch data");
+                            setNirmayData(null);
+                          } else {
+                            const active = d2.isActive;
+                            setNirmayData({
+                              isActive: active,
+                              prescriptions: active === "true" ? (d2.prescriptions || []) : [],
+                            });
+                          }
+                        } catch (err) {
+                          alert("Error fetching data");
+                          setNirmayData(null);
+                        }
+                        setLoadingNirmay(false);
+                      } catch (e) {
+                        alert("OTP verification error");
+                        setOtpVerified(false);
+                      } finally {
+                        setOtpVerifying(false);
+                      }
+                    }}
+                    disabled={otpVerifying}
+                  >
+                    {otpVerifying ? "Verifying..." : "Verify OTP"}
+                  </button>
+                </div>
+              </div>
+            )}
+            
 
             {/* Display results */}
             {loadingNirmay && <p>Loading...</p>}
@@ -499,6 +569,9 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
                 <p>
                   <strong>Is Active:</strong> {nirmayData.isActive}
                 </p>
+                {nirmayData.isActive !== "true" && (
+                  <p className="text-sm text-muted-foreground mt-1">Patient is not active. Prescriptions will only be shown when active.</p>
+                )}
                 {nirmayData.prescriptions.length > 0 && (
                   <div className="mt-2">
                     <strong>Prescriptions:</strong>
@@ -512,7 +585,7 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
               </div>
             )}
           </div>
-      )}
+        )}
         
       </div>
     </main>

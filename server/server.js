@@ -11,7 +11,10 @@ import reconRoutes from "./src/routes/reconRoutes.js";
 import registerRoutes from "./src/routes/registerRoutes.js"; 
 import inventoryRoutes from "./src/routes/pharmaRoutes.js";
 import loginRoutes from "./src/routes/loginRoutes.js";
+
 import ticketRoutes from "./src/routes/ticketRoutes.js";
+import otpRoutes from "./src/routes/otpRoutes.js";
+
 
 const app = express();
 
@@ -27,6 +30,8 @@ app.use("/api", registerRoutes);
 app.use("/api", loginRoutes);
 app.use("/api", inventoryRoutes);
 app.use("/api", ticketRoutes);
+app.use("/api", otpRoutes);
+
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
