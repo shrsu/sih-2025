@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get("/tickets", async (req, res) => {
   try {
-    const tickets = await Ticket.find({});
+    const tickets = await Ticket.find({ isActive: true });
     res.status(200).json(tickets);
   } catch (err) {
     console.error("Error fetching tickets:", err);
@@ -29,7 +29,7 @@ router.patch("/tickets/prescription", async (req, res) => {
       {
         $set: {
           "summaries.$.prescription": {
-            ...prescription,
+            text: prescription,
             prescribedBy: doctor_name,
           },
         },
@@ -72,6 +72,23 @@ router.patch("/tickets/status", async (req, res) => {
   } catch (err) {
     console.error("Error updating ticket status:", err);
     res.status(500).json({ error: "Failed to update ticket status" });
+  }
+});
+
+router.get("/tickets/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const ticket = await Ticket.findById(id);
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    res.status(200).json(ticket);
+  } catch (err) {
+    console.error("Error fetching ticket by id:", err);
+    res.status(500).json({ error: "Failed to fetch ticket" });
   }
 });
 

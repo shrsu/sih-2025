@@ -25,7 +25,8 @@ async function processCompletedCalls() {
       const summaryEntry = {
         id: call._id,
         aiAnalysis,
-            };
+        prescription: "",
+      };
 
       if (existing) {
         existing.summaries.push(summaryEntry);

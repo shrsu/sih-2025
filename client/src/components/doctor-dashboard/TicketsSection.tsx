@@ -48,6 +48,7 @@ function TicketsSection({ tickets }: { tickets: Ticket[] }) {
                 {tickets.map((ticket) => (
                   <TicketCard
                     key={ticket._id}
+                    id={ticket._id}
                     name={ticket.name}
                     gender={ticket.gender}
                     date={

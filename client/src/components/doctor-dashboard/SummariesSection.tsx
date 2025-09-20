@@ -96,6 +96,9 @@ function SummariesSection({ ticket }: ReportSectionProps) {
           <span>Gender: {ticket.gender}</span>
           <span>Date: {formattedDate}</span>
         </div>
+        <p className="text-xs text-muted-foreground break-all">
+          Ticket ID: <span className="font-mono">{ticket._id}</span>
+        </p>
       </div>
 
       {/* Summary Selector */}
