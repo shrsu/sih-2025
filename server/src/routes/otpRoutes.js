@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import twilio from "twilio";
-import Summary from "../models/Summary.js";
+import Ticket from "../models/Ticket.js";
 
 dotenv.config();
 
@@ -51,10 +51,12 @@ router.post("/otp/send", async (req, res) => {
   }
 });
 
-// Verify OTP and return status + prescriptions
 router.post("/otp/verify", async (req, res) => {
   try {
-    if (!twilioClient) return res.status(500).json({ error: "OTP service not configured" });
+    if (!twilioClient) {
+      return res.status(500).json({ error: "OTP service not configured" });
+    }
+
     const { phoneNumber, code } = req.body;
     if (!phoneNumber || !code) {
       return res.status(400).json({ error: "phoneNumber and code are required" });
@@ -70,17 +72,21 @@ router.post("/otp/verify", async (req, res) => {
       return res.status(401).json({ error: "Invalid or expired OTP" });
     }
 
-    // After successful verification, fetch the user's status and prescriptions
-    const summary = await Summary.findOne({ phoneNumber: to });
-
-    if (!summary) {
-      return res.status(404).json({ error: "No summary found for this phone number" });
+    const ticket = await Ticket.findOne({ phoneNumber: to });
+    if (!ticket) {
+      return res.status(404).json({ error: "No ticket found for this phone number" });
     }
 
-    const isActive = summary.isActive; // Note: in current schema this is a string
-    const prescriptions = (summary.aiAnalysis || []).map((a) => a.prescriptionId).filter(Boolean);
+    const isActive = ticket.isActive === true || ticket.isActive === "true";
 
-    res.status(200).json({ verified: true, isActive, prescriptions });
+    const prescriptions =
+      ticket.summaries?.map((s) => s.prescription?.text).filter(Boolean) || [];
+
+    res.status(200).json({
+      verified: true,
+      isActive,
+      prescriptions,
+    });
   } catch (err) {
     console.error("/otp/verify error", err);
     res.status(500).json({ error: "Failed to verify OTP" });

@@ -1,248 +1,256 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Plus,
   Edit3,
   Trash2,
   Package,
   TrendingUp,
-  AlertTriangle,
+  VerifiedIcon,
   Search,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { User, MapPin, Briefcase } from "lucide-react";
+
 import { ModeToggle } from "@/themes/mode-toggle";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 
 type Medicine = {
-  id: number;
   name: string;
   category: string;
-  stock: number;
-  price: number;
-  expiryDate: string;
-  supplier: string;
-  minStock: number;
-  batchNo: string;
-};
-
-type Sale = {
-  id: number;
-  medicineId: number;
-  medicineName: string;
-  quantity: number;
-  price: number;
-  date: string;
-  prescriptionId: string;
-  customer: string;
+  requiresPrescription: boolean;
+  status: "in stock" | "out of stock";
 };
 
 type ModalType = "add" | "edit" | "delete";
 
-const PharmacistDashboard: React.FC = () => {
-const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("inventory");
+const user = JSON.parse(localStorage.getItem("nirmaya-user") || "{}");
+const pharmacyId = user?.id;
 
-  const [medicines, setMedicines] = useState<Medicine[]>([
-    {
-      id: 1,
-      name: "Paracetamol 500mg",
-      category: "Analgesic",
-      stock: 150,
-      price: 2.5,
-      expiryDate: "2025-12-30",
-      supplier: "MedCorp Ltd",
-      minStock: 50,
-      batchNo: "PC2024-001",
-    },
-    {
-      id: 2,
-      name: "Amoxicillin 250mg",
-      category: "Antibiotic",
-      stock: 25,
-      price: 8.75,
-      expiryDate: "2025-08-15",
-      supplier: "PharmaCo",
-      minStock: 30,
-      batchNo: "AM2024-045",
-    },
-  ]);
-  const [salesHistory] = useState<Sale[]>([
-    {
-      id: 1,
-      medicineId: 1,
-      medicineName: "Paracetamol 500mg",
-      quantity: 10,
-      price: 25.0,
-      date: "2024-09-18",
-      prescriptionId: "RX-2024-001",
-      customer: "John Smith",
-    },
-    {
-      id: 2,
-      medicineId: 2,
-      medicineName: "Amoxicillin 250mg",
-      quantity: 5,
-      price: 43.75,
-      date: "2024-09-17",
-      prescriptionId: "RX-2024-002",
-      customer: "Sarah Johnson",
-    },
-    {
-      id: 3,
-      medicineId: 1,
-      medicineName: "Paracetamol 500mg",
-      quantity: 3,
-      price: 7.5,
-      date: "2024-09-16",
-      prescriptionId: "RX-2024-003",
-      customer: "Michael Brown",
-    },
-  ]);
+const PharmacistDashboard: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">(
+    "inventory"
+  );
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<ModalType>("add");
-  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(
-    null
-  );
+  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
-  const [nirmayPhone, setNirmayPhone] = useState("");
-  const [nirmayData, setNirmayData] = useState<{ isActive: string; prescriptions: string[] } | null>(null);
-  const [loadingNirmay, setLoadingNirmay] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
-  const [otpVerifying, setOtpVerifying] = useState(false);
-  const [otpVerified, setOtpVerified] = useState(false);
-
-  const [formData, setFormData] = useState<Omit<Medicine, "id">>({
+  const [newMedicine, setNewMedicine] = useState<Medicine>({
     name: "",
     category: "",
-    stock: 0,
-    price: 0,
-    expiryDate: "",
-    supplier: "",
-    minStock: 0,
-    batchNo: "",
+    requiresPrescription: false,
+    status: "in stock",
   });
-  const categories: string[] = [
-    "Analgesic",
-    "Antibiotic",
-    "Anti-inflammatory",
-    "Antidiabetic",
-    "Cardiovascular",
-    "Respiratory",
-  ];
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      category: "",
-      stock: 0,
-      price: 0,
-      expiryDate: "",
-      supplier: "",
-      minStock: 0,
-      batchNo: "",
-    });
+
+  const [nirmayPhone, setNirmayPhone] = useState("");
+  const [nirmayData, setNirmayData] = useState<{
+    isActive: string;
+    prescriptions: string[];
+  } | null>(null);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+
+  const pharmacyDetails = {
+    name: user.name || "Pharma Dashboard",
+    role: user.role || "",
+    location: user.location || "",
   };
-  const openModal = (type: ModalType, medicine: Medicine | null = null) => {
-    setModalType(type);
-    setSelectedMedicine(medicine);
-    if (medicine && type === "edit") {
-      setFormData({
-        name: medicine.name,
-        category: medicine.category,
-        stock: medicine.stock,
-        price: medicine.price,
-        expiryDate: medicine.expiryDate,
-        supplier: medicine.supplier,
-        minStock: medicine.minStock,
-        batchNo: medicine.batchNo,
-      });
-    } else {
-      resetForm();
-    }
-    setShowModal(true);
-  };
+
+  useEffect(() => {
+  if (activeTab !== "nirmay") {
+    setNirmayPhone("");
+    setOtpCode("");
+    setOtpSent(false);
+    setOtpVerified(false);
+    setNirmayData(null);
+  }
+}, [activeTab]);
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      if (!pharmacyId) return;
+
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_BACKEND_URI}/inventory?pharmacy_id=${pharmacyId}`
+        );
+        const data = await res.json();
+
+        if (res.ok) {
+          const normalized = (data.inventory || []).map((m: any) => ({
+            name: m.name,
+            category: m.category,
+            requiresPrescription: m.requires_prescription,
+            status: m.status,
+          }));
+
+          setMedicines(normalized);
+
+          // Extract unique categories dynamically
+          const uniqueCategories = Array.from(
+            new Set(normalized.map((m) => m.category))
+          );
+          setCategories(uniqueCategories);
+        } else {
+          alert(data.error || "Failed to fetch inventory");
+        }
+      } catch (err) {
+        console.error("Error fetching inventory:", err);
+      }
+    };
+
+    fetchInventory();
+  }, []);
 
   const filteredMedicines = medicines.filter((med) => {
+    const name = med.name || "";
+    const category = med.category || "";
+
     const matchesSearch =
-      med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      med.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !filterCategory || med.category === filterCategory;
+      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      category.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCategory = !filterCategory || category === filterCategory;
+
     return matchesSearch && matchesCategory;
   });
-  const lowStockMedicines = medicines.filter(
-    (med) => med.stock <= med.minStock
-  );
-  const totalValue = medicines.reduce(
-    (sum, med) => sum + med.stock * med.price,
-    0
-  );
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 2,
-    }).format(amount);
+  // Backend interaction handlers
+  const handleAddMedicine = async () => {
+    if (!newMedicine.name || !newMedicine.category) {
+      alert("Name and category are required");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URI}/inventory/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pharmacy_id: pharmacyId, medicine: newMedicine }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setMedicines(data.inventory);
+        setShowModal(false);
+        setNewMedicine({
+          name: "",
+          category: "",
+          requiresPrescription: false,
+          status: "in stock",
+        });
+      } else {
+        alert(data.error || "Failed to add medicine");
+      }
+    } catch (err) {
+      console.error("Error adding medicine:", err);
+    }
   };
 
-  // Format date
-  const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+  const handleEditMedicine = async () => {
+    if (!selectedMedicine || !newMedicine.name || !newMedicine.category) return;
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URI}/inventory/update`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pharmacy_id: pharmacyId,
+          name: selectedMedicine.name,
+          updates: newMedicine,
+        }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setMedicines(data.inventory);
+        setShowModal(false);
+      } else {
+        alert(data.error || "Failed to update medicine");
+      }
+    } catch (err) {
+      console.error("Error updating medicine:", err);
+    }
+  };
+
+  const handleDeleteMedicine = async () => {
+    if (!selectedMedicine) return;
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URI}/inventory/remove`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pharmacy_id: pharmacyId,
+          name: selectedMedicine.name,
+        }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setMedicines(data.inventory);
+        setShowModal(false);
+      } else {
+        alert(data.error || "Failed to delete medicine");
+      }
+    } catch (err) {
+      console.error("Error deleting medicine:", err);
+    }
   };
 
   return (
-    <main className="flex w-full flex-col min-h-screen">
-      {/* Header */}
-      <header className="flex w-full justify-between pr-8 h-16 pl-4 py-4 sticky top-0 bg-background z-10 border-b">
-        <h1 className="text-xl font-bold">Pharma Dashboard</h1>
-        <ModeToggle />
-      </header>
-      <div className="mx-auto max-w-7xl px-6 py-6 w-full">
-        {/* NAV */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-primary text-primary-foreground shadow-xs">
-              <Package className="h-8 w-8" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">Pharma Dashboard</h1>
-              <p className="text-sm text-muted-foreground">
-                Medicine Availability Management System
-              </p>
-            </div>
-          </div>
-          <div className="rounded-lg px-4 py-2 shadow-2xs bg-accent text-accent-foreground">
-            Total Available Medicines:{" "}
-            {medicines.filter((m) => m.stock > 0).length}
-          </div>
-        </div>
+    <main className="flex w-full flex-col min-h-screen bg-background dark:bg-gray-900">
 
-        {/* Tabs */}
-        <div className="bg-card rounded-xl shadow-sm p-1 mb-6 border">
+<header className="flex w-full justify-between items-center px-6 py-4 sticky top-0 z-10 bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md rounded-b-lg">
+  {/* Left - Title */}
+  <div className="flex items-center space-x-3">
+    <Package className="w-8 h-8 text-white" />
+    <div>
+      <h1 className="text-2xl font-extrabold tracking-tight drop-shadow-md">
+        Pharma Dashboard
+      </h1>
+      <p className="text-sm opacity-80">Manage your inventory & sales</p>
+    </div>
+  </div>
+
+  {/* Right - Profile / Info */}
+  <div className="flex items-center space-x-6">
+    <div className="flex flex-col text-right">
+      <div className="flex items-center justify-end gap-2">
+        <User className="w-5 h-5 text-white/80" />
+        <span className="font-semibold text-white">{pharmacyDetails.name}</span>
+      </div>
+      <div className="flex items-center justify-end gap-4 text-sm text-white/70 mt-1">
+        <span className="flex items-center gap-1">
+          <Briefcase className="w-4 h-4" /> {pharmacyDetails.role}
+        </span>
+        <span className="flex items-center gap-1">
+          <MapPin className="w-4 h-4" /> {pharmacyDetails.location}
+        </span>
+      </div>
+    </div>
+
+    {/* Optional: Mode toggle or profile dropdown */}
+    <ModeToggle />
+  </div>
+</header>
+
+
+      <div className="mx-auto max-w-7xl px-6 py-6 w-full">
+        {/* Navigation */}
+        <div className="bg-card rounded-xl shadow-sm p-1 mb-6 border dark:border-gray-700">
           <div className="flex space-x-1">
             {[
-              { id: "inventory" as const, label: "Medicine Inventory", icon: Package },
+              { id: "inventory" as const, label: "Inventory", icon: Package },
               { id: "history" as const, label: "Sales History", icon: TrendingUp },
-              { id: "nirmay" as const, label: "Nirmay Medicines", icon: AlertTriangle },
+              { id: "nirmay" as const, label: "Nirmay Verification", icon: VerifiedIcon },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -250,7 +258,7 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
                 className={`flex items-center space-x-2 px-6 py-3 rounded-md font-medium transition-all ${
                   activeTab === tab.id
                     ? "bg-primary text-primary-foreground shadow-md"
-                    : "text-muted-foreground hover:bg-muted"
+                    : "text-muted-foreground hover:bg-muted dark:text-gray-400 dark:hover:bg-gray-700"
                 }`}
               >
                 <tab.icon className="h-5 w-5" />
@@ -259,11 +267,11 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
             ))}
           </div>
         </div>
+
         {/* Inventory Tab */}
         {activeTab === "inventory" && (
           <>
-            {/* Controls */}
-            <div className="bg-card rounded-xl shadow-sm p-6 mb-6 border">
+            <div className="bg-card rounded-xl shadow-sm p-6 mb-6 border dark:border-gray-700">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex flex-col sm:flex-row gap-4 flex-1">
                   <div className="relative">
@@ -271,13 +279,14 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
                     <input
                       type="text"
                       placeholder="Search medicines..."
-                      className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background"
+                      className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background dark:bg-gray-800 text-gray-800 dark:text-gray-100"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
+
                   <select
-                    className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-ring bg-background"
+                    className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-ring bg-background dark:bg-gray-800 text-gray-800 dark:text-gray-100"
                     value={filterCategory}
                     onChange={(e) => setFilterCategory(e.target.value)}
                   >
@@ -289,304 +298,308 @@ const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">("
                     ))}
                   </select>
                 </div>
+
                 <button
-                  onClick={() => openModal("add")}
-                  className="bg-primary hover:brightness-95 text-primary-foreground px-6 py-2 rounded-lg flex items-center space-x-2 transition-colors shadow-sm"
+                  onClick={() => {
+                    setModalType("add");
+                    setSelectedMedicine(null);  // clear any selected medicine
+                    setNewMedicine({            // reset form fields
+                      name: "",
+                      category: "",
+                      requiresPrescription: false,
+                      status: "in stock",
+                    });
+                    setShowModal(true);
+                  }}
+                  className="bg-primary text-primary-foreground px-6 py-2 rounded-lg flex items-center space-x-2 shadow-sm"
                 >
                   <Plus className="h-5 w-5" />
                   <span>Add Medicine</span>
                 </button>
+
               </div>
             </div>
-            {/* Medicines */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredMedicines.map((m) => (
-                <div
-                  key={m.id}
-                  className="bg-card rounded-xl shadow-sm hover:shadow-md transition-shadow border"
-                >
-                  <div className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold mb-1">{m.name}</h3>
-                        <span className="inline-block bg-accent text-accent-foreground text-xs px-2 py-1 rounded-full font-medium">
-                          {m.category}
-                        </span>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => openModal("edit", m)}
-                          className="text-primary hover:underline p-1"
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => openModal("delete", m)}
-                          className="text-destructive hover:underline p-1"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Availability:</span>
-                        <span
-                          className={`font-semibold ${
-                            m.stock > 0 ? "text-green-600" : "text-destructive"
-                          }`}
-                        >
-                          {m.stock > 0 ? "Available" : "Unavailable"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Price:</span>
-                        <span className="font-semibold">{formatCurrency(m.price)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Expiry:</span>
-                        <span>{m.expiryDate}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Batch:</span>
-                        <span className="text-sm">{m.batchNo}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Supplier:</span>
-                        <span className="text-sm">{m.supplier}</span>
-                      </div>
-                    </div>
 
+            {/* Inventory Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredMedicines.map((m, idx) => (
+                <div
+                  key={idx}
+                  className="bg-card rounded-xl shadow-sm hover:shadow-md transition-shadow border p-6 dark:border-gray-700"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-1 text-gray-800 dark:text-gray-100">
+                        {m.name}
+                      </h3>
+                      <span className="inline-block bg-accent text-accent-foreground text-xs px-2 py-1 rounded-full font-medium">
+                        {m.category}
+                      </span>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => {
+                          setSelectedMedicine(m);
+                          setNewMedicine(m);
+                          setModalType("edit");
+                          setShowModal(true);
+                        }}
+                        className="text-primary p-1"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedMedicine(m);
+                          setModalType("delete");
+                          setShowModal(true);
+                        }}
+                        className="text-destructive p-1"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 text-sm text-gray-800 dark:text-gray-200">
+                    <div className="flex justify-between">
+                      <span>Prescription Required:</span>
+                      <span>{m.requiresPrescription ? "Yes" : "No"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Status:</span>
+                      <span
+                        className={`font-medium ${
+                          m.status === "in stock"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {m.status}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </>
         )}
-        {/* History Tab */}
-        {activeTab === "history" && (
-          <Card className="shadow-sm border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Sales History
-              </CardTitle>
-              <CardDescription>
-                View all medicine sales records and transactions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table className="rounded-md border">
-                <TableHeader>
-                  <TableRow className="bg-muted/50 hover:bg-muted/50">
-                    <TableHead className="rounded-tl-md">Date</TableHead>
-                    <TableHead>Medicine</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Unit Price</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                    <TableHead className="rounded-tr-md">Prescription</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {salesHistory.map((s) => {
-                    const medicine = medicines.find(m => m.id === s.medicineId);
-                    const unitPrice = medicine ? medicine.price : 0;
-                    const total = s.quantity * unitPrice;
-                    
-                    return (
-                      <TableRow 
-                        key={s.id} 
-                        className="hover:bg-muted/30 transition-colors"
-                      >
-                        <TableCell className="font-medium">
-                          {formatDate(s.date)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">{s.medicineName}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {s.prescriptionId}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">{s.customer}</div>
-                        </TableCell>
-                        <TableCell>{s.quantity}</TableCell>
-                        <TableCell>{formatCurrency(unitPrice)}</TableCell>
-                        <TableCell className="text-right font-semibold text-green-600">
-                          {formatCurrency(total)}
-                        </TableCell>
-                        <TableCell>
-                          <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                            {s.prescriptionId}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              
-              {/* Summary Section */}
-              <div className="mt-6 pt-4 border-t">
-                <div className="flex justify-between items-center">
-                  <div className="text-muted-foreground">Total Sales</div>
-                  <div className="text-xl font-bold">
-                    {formatCurrency(
-                      salesHistory.reduce(
-                        (sum, sale) => {
-                          const medicine = medicines.find(m => m.id === sale.medicineId);
-                          const unitPrice = medicine ? medicine.price : 0;
-                          return sum + (sale.quantity * unitPrice);
-                        },
-                        0
-                      )
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {activeTab === "nirmay" && (
-          <div className="bg-card rounded-xl shadow-sm p-6 mb-6 border">
-            <h2 className="text-lg font-semibold mb-4">Nirmay Medicines</h2>
 
-            {/* Phone number input */}
+        {/* Add/Edit/Delete Modal */}
+        {showModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-96 p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                  {modalType === "add" && <Plus className="w-5 h-5 text-green-500" />}
+                  {modalType === "edit" && <Edit3 className="w-5 h-5 text-blue-500" />}
+                  {modalType === "delete" && <Trash2 className="w-5 h-5 text-red-500" />}
+                  {modalType === "add"
+                    ? "Add Medicine"
+                    : modalType === "edit"
+                    ? "Edit Medicine"
+                    : "Delete Medicine"}
+                </h2>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {modalType !== "delete" && (
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Medicine Name"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100"
+                    value={newMedicine.name}
+                    onChange={(e) =>
+                      setNewMedicine({ ...newMedicine, name: e.target.value })
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Category"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-500 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100"
+                    value={newMedicine.category}
+                    onChange={(e) =>
+                      setNewMedicine({ ...newMedicine, category: e.target.value })
+                    }
+                  />
+                  <select
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-green-400 dark:focus:ring-green-500 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100"
+                    value={newMedicine.status}
+                    onChange={(e) =>
+                      setNewMedicine({
+                        ...newMedicine,
+                        status: e.target.value as "in stock" | "out of stock",
+                      })
+                    }
+                  >
+                    <option value="in stock">In Stock</option>
+                    <option value="out of stock">Out of Stock</option>
+                  </select>
+                  <label className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+                    <input
+                      type="checkbox"
+                      checked={newMedicine.requiresPrescription}
+                      onChange={(e) =>
+                        setNewMedicine({
+                          ...newMedicine,
+                          requiresPrescription: e.target.checked,
+                        })
+                      }
+                      className="w-5 h-5 accent-blue-500"
+                    />
+                    Requires Prescription
+                  </label>
+                </div>
+              )}
+
+              {modalType === "delete" && selectedMedicine && (
+                <p className="text-gray-800 dark:text-gray-100 text-center">
+                  Are you sure you want to delete{" "}
+                  <span className="font-semibold text-red-500">{selectedMedicine.name}</span> from inventory?
+                </p>
+              )}
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
+                >
+                  Cancel
+                </button>
+
+                {modalType === "add" && (
+                  <button
+                    onClick={handleAddMedicine}
+                    className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add
+                  </button>
+                )}
+                {modalType === "edit" && (
+                  <button
+                    onClick={handleEditMedicine}
+                    className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center gap-2"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    Save
+                  </button>
+                )}
+                {modalType === "delete" && (
+                  <button
+                    onClick={handleDeleteMedicine}
+                    className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Nirmay Verification Tab */}
+        {activeTab === "nirmay" && (
+          <div className="bg-card rounded-xl shadow-sm p-6 mb-6 border dark:border-gray-700">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">
+              Verify Nirmay Prescription
+            </h2>
+
             <div className="mb-4">
-              <label className="block mb-1 font-medium">Phone Number</label>
+              <label className="block mb-1 font-medium text-gray-700 dark:text-gray-200">
+                Phone Number
+              </label>
               <input
                 type="text"
-                className="w-full px-4 py-2 border rounded-lg"
+                className="w-full px-4 py-2 border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100"
                 value={nirmayPhone}
                 onChange={(e) => setNirmayPhone(e.target.value)}
+                placeholder="Enter 10 digit phone number"
               />
             </div>
 
-            {/* OTP Actions */}
-            {!otpSent && (
+            {!otpSent ? (
               <button
-                className="bg-primary hover:brightness-95 text-primary-foreground px-6 py-2 rounded-lg transition-colors mb-4"
+                className="bg-primary text-primary-foreground px-6 py-2 rounded-lg"
                 onClick={async () => {
                   if (!nirmayPhone.trim()) {
-                    alert("Enter a phone number");
+                    alert("Enter phone number");
                     return;
                   }
-                  try {
-                    const res = await fetch("http://localhost:8080/api/otp/send", {
+                  const res = await fetch(
+                    `${import.meta.env.VITE_BACKEND_URI}/otp/send`,
+                    {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ phoneNumber: nirmayPhone }),
-                    });
-                    const data = await res.json();
-                    if (!res.ok) {
-                      alert(data.error || "Failed to send OTP");
-                      return;
                     }
-                    setOtpSent(true);
-                    alert("OTP sent successfully");
-                  } catch (e) {
-                    alert("Failed to send OTP");
-                  }
+                  );
+                  if (res.ok) setOtpSent(true);
                 }}
               >
                 Send OTP
               </button>
-            )}
-
-            {otpSent && !otpVerified && (
-              <div className="mb-4">
-                <label className="block mb-1 font-medium">Enter OTP</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    className="flex-1 px-4 py-2 border rounded-lg"
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value)}
-                  />
-                  <button
-                    className="bg-primary hover:brightness-95 text-primary-foreground px-6 py-2 rounded-lg transition-colors"
-                    onClick={async () => {
-                      if (!otpCode.trim()) {
-                        alert("Enter the OTP");
-                        return;
+            ) : !otpVerified ? (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  className="flex-1 px-4 py-2 border rounded-lg"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value)}
+                  placeholder="Enter OTP"
+                />
+                <button
+                  className="bg-primary text-primary-foreground px-6 py-2 rounded-lg"
+                  onClick={async () => {
+                    const res = await fetch(
+                      `${import.meta.env.VITE_BACKEND_URI}/otp/verify`,
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          phoneNumber: nirmayPhone,
+                          code: otpCode,
+                        }),
                       }
-                      setOtpVerifying(true);
-                      try {
-                        const res = await fetch("http://localhost:8080/api/otp/verify", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ phoneNumber: nirmayPhone, code: otpCode }),
-                        });
-                        const data = await res.json();
-                        if (!res.ok) {
-                          alert(data.error || "OTP verification failed");
-                          setOtpVerified(false);
-                          return;
-                        }
-                        setOtpVerified(true);
-                        // After successful verification, fetch summaries
-                        setLoadingNirmay(true);
-                        try {
-                          const res2 = await fetch(`http://localhost:8080/api/summaries/${nirmayPhone}`);
-                          const d2 = await res2.json();
-                          if (!res2.ok) {
-                            alert(d2.error || "Failed to fetch data");
-                            setNirmayData(null);
-                          } else {
-                            const active = d2.isActive;
-                            setNirmayData({
-                              isActive: active,
-                              prescriptions: active === "true" ? (d2.prescriptions || []) : [],
-                            });
-                          }
-                        } catch (err) {
-                          alert("Error fetching data");
-                          setNirmayData(null);
-                        }
-                        setLoadingNirmay(false);
-                      } catch (e) {
-                        alert("OTP verification error");
-                        setOtpVerified(false);
-                      } finally {
-                        setOtpVerifying(false);
-                      }
-                    }}
-                    disabled={otpVerifying}
-                  >
-                    {otpVerifying ? "Verifying..." : "Verify OTP"}
-                  </button>
-                </div>
+                    );
+                    const data = await res.json();
+                    if (res.ok) {
+                      setOtpVerified(true);
+                      setNirmayData({
+                        isActive: data.isActive ? "true" : "false",
+                        prescriptions: data.prescriptions || [],
+                      });
+                    }
+                  }}
+                >
+                  Verify
+                </button>
               </div>
-            )}
-            
-
-            {/* Display results */}
-            {loadingNirmay && <p>Loading...</p>}
-            {nirmayData && (
-              <div className="mt-4 p-4 border rounded-lg bg-muted/10">
-                <p>
-                  <strong>Is Active:</strong> {nirmayData.isActive}
-                </p>
-                {nirmayData.isActive !== "true" && (
-                  <p className="text-sm text-muted-foreground mt-1">Patient is not active. Prescriptions will only be shown when active.</p>
-                )}
-                {nirmayData.prescriptions.length > 0 && (
-                  <div className="mt-2">
-                    <strong>Prescriptions:</strong>
+            ) : (
+              nirmayData && (
+                <div className="mt-4 p-4 border rounded-lg bg-muted/10 text-gray-800 dark:text-gray-100">
+                  <p>
+                    <strong>Is Active:</strong> {nirmayData.isActive}
+                  </p>
+                  {nirmayData.prescriptions.length > 0 && (
                     <ul className="list-disc ml-5">
-                      {nirmayData.prescriptions.map((p, idx) => (
-                        <li key={idx}>{p}</li>
+                      {nirmayData.prescriptions.map((p, i) => (
+                        <li key={i}>{p}</li>
                       ))}
                     </ul>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )
             )}
           </div>
         )}
-        
       </div>
     </main>
   );
