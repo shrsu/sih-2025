@@ -7,16 +7,13 @@ import {
   TrendingUp,
   VerifiedIcon,
   Search,
+  LogOut,
 } from "lucide-react";
 import { User, MapPin, Briefcase } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
+import { useLoggedInEntity } from "@/contexts/LoggedInEntityContext";
 import { ModeToggle } from "@/themes/mode-toggle";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 type Medicine = {
   name: string;
@@ -31,14 +28,16 @@ const user = JSON.parse(localStorage.getItem("nirmaya-user") || "{}");
 const pharmacyId = user?.id;
 
 const PharmacistDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"inventory" | "history" | "nirmay">(
-    "inventory"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "inventory" | "history" | "nirmay"
+  >("inventory");
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<ModalType>("add");
-  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
+  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(
+    null
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [newMedicine, setNewMedicine] = useState<Medicine>({
@@ -63,15 +62,23 @@ const PharmacistDashboard: React.FC = () => {
     location: user.location || "",
   };
 
+  const navigate = useNavigate();
+  const { setEntity } = useLoggedInEntity();
+
+  const handleLogout = () => {
+    setEntity(null);
+    navigate("/");
+  };
+
   useEffect(() => {
-  if (activeTab !== "nirmay") {
-    setNirmayPhone("");
-    setOtpCode("");
-    setOtpSent(false);
-    setOtpVerified(false);
-    setNirmayData(null);
-  }
-}, [activeTab]);
+    if (activeTab !== "nirmay") {
+      setNirmayPhone("");
+      setOtpCode("");
+      setOtpSent(false);
+      setOtpVerified(false);
+      setNirmayData(null);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const fetchInventory = async () => {
@@ -79,7 +86,9 @@ const PharmacistDashboard: React.FC = () => {
 
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_BACKEND_URI}/inventory?pharmacy_id=${pharmacyId}`
+          `${
+            import.meta.env.VITE_BACKEND_URI
+          }/inventory?pharmacy_id=${pharmacyId}`
         );
         const data = await res.json();
 
@@ -94,8 +103,8 @@ const PharmacistDashboard: React.FC = () => {
           setMedicines(normalized);
 
           // Extract unique categories dynamically
-          const uniqueCategories = Array.from(
-            new Set(normalized.map((m) => m.category))
+          const uniqueCategories: string[] = Array.from(
+            new Set(normalized.map((m: any) => m.category))
           );
           setCategories(uniqueCategories);
         } else {
@@ -130,19 +139,22 @@ const PharmacistDashboard: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URI}/inventory/add`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pharmacy_id: pharmacyId,
-          medicine: {
-            name: newMedicine.name,
-            category: newMedicine.category,
-            requires_prescription: newMedicine.requiresPrescription,
-            status: newMedicine.status,
-          },
-        }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URI}/inventory/add`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            pharmacy_id: pharmacyId,
+            medicine: {
+              name: newMedicine.name,
+              category: newMedicine.category,
+              requires_prescription: newMedicine.requiresPrescription,
+              status: newMedicine.status,
+            },
+          }),
+        }
+      );
       const data = await res.json();
 
       if (res.ok) {
@@ -172,20 +184,23 @@ const PharmacistDashboard: React.FC = () => {
     if (!selectedMedicine || !newMedicine.name || !newMedicine.category) return;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URI}/inventory/update`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pharmacy_id: pharmacyId,
-          name: selectedMedicine.name,
-          updates: {
-            name: newMedicine.name,
-            category: newMedicine.category,
-            requires_prescription: newMedicine.requiresPrescription,
-            status: newMedicine.status,
-          },
-        }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URI}/inventory/update`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            pharmacy_id: pharmacyId,
+            name: selectedMedicine.name,
+            updates: {
+              name: newMedicine.name,
+              category: newMedicine.category,
+              requires_prescription: newMedicine.requiresPrescription,
+              status: newMedicine.status,
+            },
+          }),
+        }
+      );
       const data = await res.json();
 
       if (res.ok) {
@@ -209,14 +224,17 @@ const PharmacistDashboard: React.FC = () => {
     if (!selectedMedicine) return;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URI}/inventory/remove`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pharmacy_id: pharmacyId,
-          name: selectedMedicine.name,
-        }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URI}/inventory/remove`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            pharmacy_id: pharmacyId,
+            name: selectedMedicine.name,
+          }),
+        }
+      );
       const data = await res.json();
 
       if (res.ok) {
@@ -232,41 +250,48 @@ const PharmacistDashboard: React.FC = () => {
 
   return (
     <main className="flex w-full flex-col min-h-screen bg-background dark:bg-gray-900">
+      <header className="flex w-full justify-between items-center px-6 py-4 sticky top-0 z-10 bg-card border-b shadow-sm">
+        {/* Left - Title */}
+        <div className="flex items-center space-x-3">
+          <Package className="w-8 h-8 text-primary" />
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
+              Pharma Dashboard
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Manage your inventory & sales
+            </p>
+          </div>
+        </div>
 
-<header className="flex w-full justify-between items-center px-6 py-4 sticky top-0 z-10 bg-card border-b shadow-sm">
-  {/* Left - Title */}
-  <div className="flex items-center space-x-3">
-    <Package className="w-8 h-8 text-primary" />
-    <div>
-      <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
-        Pharma Dashboard
-      </h1>
-      <p className="text-sm text-muted-foreground">Manage your inventory & sales</p>
-    </div>
-  </div>
+        {/* Right - Profile / Info */}
+        <div className="flex items-center space-x-6">
+          <div className="flex flex-col text-right">
+            <div className="flex items-center justify-end gap-2">
+              <User className="w-5 h-5 text-muted-foreground" />
+              <span className="font-semibold text-foreground">
+                {pharmacyDetails.name}
+              </span>
+            </div>
+            <div className="flex items-center justify-end gap-4 text-sm text-muted-foreground mt-1">
+              <span className="flex items-center gap-1">
+                <Briefcase className="w-4 h-4 text-muted-foreground" />{" "}
+                {pharmacyDetails.role}
+              </span>
+              <span className="flex items-center gap-1">
+                <MapPin className="w-4 h-4 text-muted-foreground" />{" "}
+                {pharmacyDetails.location}
+              </span>
+            </div>
+          </div>
 
-  {/* Right - Profile / Info */}
-  <div className="flex items-center space-x-6">
-    <div className="flex flex-col text-right">
-      <div className="flex items-center justify-end gap-2">
-        <User className="w-5 h-5 text-muted-foreground" />
-        <span className="font-semibold text-foreground">{pharmacyDetails.name}</span>
-      </div>
-      <div className="flex items-center justify-end gap-4 text-sm text-muted-foreground mt-1">
-        <span className="flex items-center gap-1">
-          <Briefcase className="w-4 h-4 text-muted-foreground" /> {pharmacyDetails.role}
-        </span>
-        <span className="flex items-center gap-1">
-          <MapPin className="w-4 h-4 text-muted-foreground" /> {pharmacyDetails.location}
-        </span>
-      </div>
-    </div>
-
-    {/* Optional: Mode toggle or profile dropdown */}
-    <ModeToggle />
-  </div>
-</header>
-
+          {/* Optional: Mode toggle or profile dropdown */}
+          <Button variant="outline" size={"icon"}  onClick={handleLogout}>
+            <LogOut />
+          </Button>
+          <ModeToggle />
+        </div>
+      </header>
 
       <div className="mx-auto max-w-7xl px-6 py-6 w-full">
         {/* Navigation */}
@@ -274,8 +299,16 @@ const PharmacistDashboard: React.FC = () => {
           <div className="flex space-x-1">
             {[
               { id: "inventory" as const, label: "Inventory", icon: Package },
-              { id: "history" as const, label: "Sales History", icon: TrendingUp },
-              { id: "nirmay" as const, label: "Nirmay Verification", icon: VerifiedIcon },
+              {
+                id: "history" as const,
+                label: "Sales History",
+                icon: TrendingUp,
+              },
+              {
+                id: "nirmay" as const,
+                label: "Nirmay Verification",
+                icon: VerifiedIcon,
+              },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -327,8 +360,9 @@ const PharmacistDashboard: React.FC = () => {
                 <button
                   onClick={() => {
                     setModalType("add");
-                    setSelectedMedicine(null);  // clear any selected medicine
-                    setNewMedicine({            // reset form fields
+                    setSelectedMedicine(null); // clear any selected medicine
+                    setNewMedicine({
+                      // reset form fields
                       name: "",
                       category: "",
                       requiresPrescription: false,
@@ -341,7 +375,6 @@ const PharmacistDashboard: React.FC = () => {
                   <Plus className="h-5 w-5" />
                   <span>Add Medicine</span>
                 </button>
-
               </div>
             </div>
 
@@ -416,9 +449,15 @@ const PharmacistDashboard: React.FC = () => {
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-96 p-6 border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                  {modalType === "add" && <Plus className="w-5 h-5 text-green-500" />}
-                  {modalType === "edit" && <Edit3 className="w-5 h-5 text-blue-500" />}
-                  {modalType === "delete" && <Trash2 className="w-5 h-5 text-red-500" />}
+                  {modalType === "add" && (
+                    <Plus className="w-5 h-5 text-green-500" />
+                  )}
+                  {modalType === "edit" && (
+                    <Edit3 className="w-5 h-5 text-blue-500" />
+                  )}
+                  {modalType === "delete" && (
+                    <Trash2 className="w-5 h-5 text-red-500" />
+                  )}
                   {modalType === "add"
                     ? "Add Medicine"
                     : modalType === "edit"
@@ -450,7 +489,10 @@ const PharmacistDashboard: React.FC = () => {
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-500 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100"
                     value={newMedicine.category}
                     onChange={(e) =>
-                      setNewMedicine({ ...newMedicine, category: e.target.value })
+                      setNewMedicine({
+                        ...newMedicine,
+                        category: e.target.value,
+                      })
                     }
                   />
                   <select
@@ -486,7 +528,10 @@ const PharmacistDashboard: React.FC = () => {
               {modalType === "delete" && selectedMedicine && (
                 <p className="text-gray-800 dark:text-gray-100 text-center">
                   Are you sure you want to delete{" "}
-                  <span className="font-semibold text-red-500">{selectedMedicine.name}</span> from inventory?
+                  <span className="font-semibold text-red-500">
+                    {selectedMedicine.name}
+                  </span>{" "}
+                  from inventory?
                 </p>
               )}
 
