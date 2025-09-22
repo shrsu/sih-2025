@@ -9,16 +9,17 @@ import {
 } from "@/components/ui/resizable";
 import SummariesSection from "./SummariesSection";
 
+type Prescription = {
+  prescription: string;
+  prescribedBy?: string;
+};
+
 type Summary = {
   id: string;
   aiAnalysis: {
     shortSummary: string;
     detailedSummary: string;
     transcript: string;
-  };
-  prescription?: {
-    text: string;
-    prescribedBy?: string;
   };
 };
 
@@ -29,12 +30,13 @@ type Ticket = {
   phoneNumber: string;
   createdAt?: string;
   summaries: Summary[];
+  prescriptions: Prescription[];
   isActive: boolean;
 };
 
 function TicketsSection({ tickets }: { tickets: Ticket[] }) {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-
+  console.log(tickets);
   return (
     <div className="h-[calc(100vh-64px)] border-t">
       <ResizablePanelGroup direction="horizontal" className="h-full">
