@@ -37,6 +37,10 @@ function HomePage() {
                   <Link to="/pharmacist/dashboard">Pharmacist Dashboard</Link>
                 </Button>
               )}
+              {/* User Dashboard quick access */}
+              <Button asChild>
+                <Link to="/user/dashboard">User Dashboard</Link>
+              </Button>
             </>
           ) : (
             <>
@@ -66,6 +70,9 @@ function HomePage() {
                   </Button>
                   <Button variant="ghost" asChild>
                     <Link to="/pharmacist/login">Pharmacist Login</Link>
+                  </Button>
+                  <Button variant="ghost" asChild>
+                    <Link to="/user/login">User Login</Link>
                   </Button>
                 </HoverCardContent>
               </HoverCard>
