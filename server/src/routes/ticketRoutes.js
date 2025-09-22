@@ -15,21 +15,21 @@ router.get("/tickets", async (req, res) => {
 });
 
 router.patch("/tickets/prescription", async (req, res) => {
-  const { summary_id, doctor_name, prescription } = req.body;
+  const { ticketId, doctor_name, prescription } = req.body;
 
-  if (!summary_id || !doctor_name || !prescription) {
+  if (!ticketId || !doctor_name || !prescription) {
     return res.status(400).json({
-      error: "summary_id, doctor_name, and prescription are required",
+      error: "ticketId, doctor_name, and prescription are required",
     });
   }
 
   try {
-    const ticket = await Ticket.findOneAndUpdate(
-      { "summaries.id": new mongoose.Types.ObjectId(summary_id) },
+    const ticket = await Ticket.findByIdAndUpdate(
+      ticketId,
       {
-        $set: {
-          "summaries.$.prescription": {
-            text: prescription,
+        $push: {
+          prescriptions: {
+            prescription,
             prescribedBy: doctor_name,
           },
         },
@@ -38,13 +38,13 @@ router.patch("/tickets/prescription", async (req, res) => {
     );
 
     if (!ticket) {
-      return res.status(404).json({ error: "Ticket or summary not found" });
+      return res.status(404).json({ error: "Ticket not found" });
     }
 
-    res.status(200).json({ message: "Prescription updated", ticket });
+    res.status(200).json({ message: "Prescription appended", ticket });
   } catch (err) {
-    console.error("Error updating prescription:", err);
-    res.status(500).json({ error: "Failed to update prescription" });
+    console.error("Error appending prescription:", err);
+    res.status(500).json({ error: "Failed to append prescription" });
   }
 });
 

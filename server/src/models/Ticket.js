@@ -1,15 +1,32 @@
 import mongoose from "mongoose";
 
+const aiAnalysisSchema = new mongoose.Schema(
+  {
+    shortSummary: String,
+    detailedSummary: String,
+    transcript: String,
+  },
+  { _id: false }
+);
+
+const summarySchema = new mongoose.Schema(
+  {
+    id: mongoose.Schema.Types.ObjectId,
+    aiAnalysis: aiAnalysisSchema,
+  },
+  { _id: false }
+);
+
 const ticketSchema = new mongoose.Schema(
   {
     phoneNumber: { type: String, unique: true },
     name: String,
     gender: String,
-    summaries: [
+    summaries: [summarySchema],
+    prescriptions: [
       {
-        id: mongoose.Schema.Types.ObjectId,
-        aiAnalysis: Object,
-        prescription: Object,
+        prescription: String,
+        prescribedBy: String,
       },
     ],
     isActive: { type: Boolean, default: true },
