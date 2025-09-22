@@ -135,7 +135,7 @@ function SummariesSection({ ticket }: ReportSectionProps) {
           {updating ? "Updating..." : "Update Prescription"}
         </Button>
 
-        {selectedSummary.prescription?.prescribedBy && (
+        {selectedSummary?.prescription?.prescribedBy && (
           <p className="text-xs mt-2 text-muted-foreground">
             Last updated by:{" "}
             <strong>{selectedSummary.prescription.prescribedBy}</strong>

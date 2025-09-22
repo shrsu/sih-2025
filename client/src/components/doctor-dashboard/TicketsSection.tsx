@@ -44,7 +44,7 @@ function TicketsSection({ tickets }: { tickets: Ticket[] }) {
               <h1 className="text-2xl font-bold text-primary">Patients</h1>
             </div>
             <div className="flex-1 w-full overflow-y-auto p-8 pt-6">
-              <div className="flex w-full gap-6 flex-wrap">
+              <div className="grid w-full gap-6 grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(28rem,1fr))]">
                 {tickets.map((ticket) => (
                   <TicketCard
                     key={ticket._id}

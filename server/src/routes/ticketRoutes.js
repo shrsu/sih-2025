@@ -92,8 +92,12 @@ router.get("/tickets/:id", async (req, res) => {
   }
 });
 
-router.get("/tickets/phone/:phoneNumber", async (req, res) => {
-  const { phoneNumber } = req.params;
+router.post("/tickets/by-phone", async (req, res) => {
+  const { phoneNumber } = req.body;
+
+  if (!phoneNumber) {
+    return res.status(400).json({ error: "phoneNumber is required" });
+  }
 
   try {
     const tickets = await Ticket.find({ phoneNumber });

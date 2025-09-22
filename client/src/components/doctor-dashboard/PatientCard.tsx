@@ -23,7 +23,7 @@ export function TicketCard({
   onViewReport,
 }: TicketCardProps) {
   return (
-    <Card className="w-full min-w-sm max-w-md shadow-sm border-border">
+    <Card className="w-full shadow-sm border-border">
       <CardHeader>
         <CardTitle className="text-xl font-semibold text-primary">
           {name}
