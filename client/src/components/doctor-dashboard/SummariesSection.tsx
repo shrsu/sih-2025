@@ -145,7 +145,7 @@ function SummariesSection({ ticket }: ReportSectionProps) {
   return (
     <div className="p-6 text-sm leading-relaxed text-muted-foreground h-full space-y-6">
       {/* Header */}
-      <div className="flex w-full justify-between">
+      <div className="flex justify-between">
         <div className="space-y-1">
           <p className="text-lg font-semibold text-foreground">{ticket.name}</p>
           <div className="flex gap-4 text-muted-foreground text-sm">
@@ -176,56 +176,6 @@ function SummariesSection({ ticket }: ReportSectionProps) {
           </Button>
         </div>
       </div>
-
-      {/* Summary Selector */}
-      {ticket.summaries.length > 1 && (
-        <div className="w-40">
-          <Select
-            value={selectedSummaryIndex.toString()}
-            onValueChange={handleSummaryChange}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select summary" />
-            </SelectTrigger>
-            <SelectContent>
-              {ticket.summaries.map((_, idx) => (
-                <SelectItem key={idx} value={idx.toString()}>
-                  Call {idx + 1}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {/* AI Summary */}
-      <div className="space-y-3">
-        <div>
-          <p className="text-md font-medium text-foreground mb-1">
-            Short Summary:
-          </p>
-          <p>{selectedSummary?.aiAnalysis?.shortSummary}</p>
-        </div>
-
-        <div>
-          <p className="text-md font-medium text-foreground mb-1">
-            Detailed Summary:
-          </p>
-          <p>{selectedSummary?.aiAnalysis?.detailedSummary}</p>
-        </div>
-
-        <div>
-          <p className="text-md font-medium text-foreground mb-1">
-            Transcript:
-          </p>
-          <pre className="whitespace-pre-wrap">
-            {selectedSummary?.aiAnalysis?.transcript}
-          </pre>
-        </div>
-      </div>
-
-      <hr className="border-border mt-4" />
-
       {/* Prescriptions Accordion */}
       <div className="space-y-2">
         <p className="text-md font-medium text-foreground">Prescriptions</p>
@@ -258,7 +208,6 @@ function SummariesSection({ ticket }: ReportSectionProps) {
           </p>
         )}
       </div>
-
       {/* Add New Prescription */}
       <div className="space-y-2 pt-4">
         <p className="text-md font-medium text-foreground">Add Prescription</p>
@@ -280,6 +229,52 @@ function SummariesSection({ ticket }: ReportSectionProps) {
             ? "Error ✕"
             : "Add Prescription"}
         </Button>
+      </div>
+      <hr className="border-border mt-4" />
+      {/* Summary Selector */}
+      {ticket.summaries.length > 1 && (
+        <div className="w-40">
+          <Select
+            value={selectedSummaryIndex.toString()}
+            onValueChange={handleSummaryChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select summary" />
+            </SelectTrigger>
+            <SelectContent>
+              {ticket.summaries.map((_, idx) => (
+                <SelectItem key={idx} value={idx.toString()}>
+                  Call {idx + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}{" "}
+      {/* AI Summary */}
+      <div className="space-y-3">
+        <div>
+          <p className="text-md font-medium text-foreground mb-1">
+            Short Summary:
+          </p>
+          <p>{selectedSummary?.aiAnalysis?.shortSummary}</p>
+        </div>
+
+        <div>
+          <p className="text-md font-medium text-foreground mb-1">
+            Detailed Summary:
+          </p>
+          <p>{selectedSummary?.aiAnalysis?.detailedSummary}</p>
+        </div>
+
+        <div>
+          <p className="text-md font-medium text-foreground mb-1">
+            Transcript:
+          </p>
+          <pre className="whitespace-pre-wrap">
+            {selectedSummary?.aiAnalysis?.transcript}
+          </pre>
+        </div>
       </div>
     </div>
   );

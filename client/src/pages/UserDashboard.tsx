@@ -215,6 +215,13 @@ const UserDashboard: React.FC = () => {
                         )}
                       </div>
                     </div>
+                    <a
+                      href={`https://nirmayaa.vercel.app/room/${t._id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button>Video session</Button>
+                    </a>
                   </div>
 
                   {/* Summaries */}
