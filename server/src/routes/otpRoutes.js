@@ -13,15 +13,20 @@ const {
   TWILIO_VERIFY_SERVICE_SID_OTP,
 } = process.env;
 
-if (!TWILIO_ACCOUNT_SID_OTP || !TWILIO_AUTH_TOKEN_OTP || !TWILIO_VERIFY_SERVICE_SID_OTP) {
+if (
+  !TWILIO_ACCOUNT_SID_OTP ||
+  !TWILIO_AUTH_TOKEN_OTP ||
+  !TWILIO_VERIFY_SERVICE_SID_OTP
+) {
   console.warn(
     "Twilio environment variables are missing. Set TWILIO_ACCOUNT_SID_OTP, TWILIO_AUTH_TOKEN_OTP, TWILIO_VERIFY_SERVICE_SID_OTP."
   );
 }
 
-const twilioClient = TWILIO_ACCOUNT_SID_OTP && TWILIO_AUTH_TOKEN_OTP
-  ? twilio(TWILIO_ACCOUNT_SID_OTP, TWILIO_AUTH_TOKEN_OTP)
-  : null;
+const twilioClient =
+  TWILIO_ACCOUNT_SID_OTP && TWILIO_AUTH_TOKEN_OTP
+    ? twilio(TWILIO_ACCOUNT_SID_OTP, TWILIO_AUTH_TOKEN_OTP)
+    : null;
 
 function normalizeIndianPhone(phoneNumber) {
   const digits = (phoneNumber || "").replace(/\D/g, "");
@@ -34,9 +39,11 @@ function normalizeIndianPhone(phoneNumber) {
 // Send OTP
 router.post("/otp/send", async (req, res) => {
   try {
-    if (!twilioClient) return res.status(500).json({ error: "OTP service not configured" });
+    if (!twilioClient)
+      return res.status(500).json({ error: "OTP service not configured" });
     const { phoneNumber } = req.body;
-    if (!phoneNumber) return res.status(400).json({ error: "phoneNumber is required" });
+    if (!phoneNumber)
+      return res.status(400).json({ error: "phoneNumber is required" });
 
     const to = normalizeIndianPhone(phoneNumber);
 
@@ -59,7 +66,9 @@ router.post("/otp/verify", async (req, res) => {
 
     const { phoneNumber, code } = req.body;
     if (!phoneNumber || !code) {
-      return res.status(400).json({ error: "phoneNumber and code are required" });
+      return res
+        .status(400)
+        .json({ error: "phoneNumber and code are required" });
     }
 
     const to = normalizeIndianPhone(phoneNumber);
@@ -74,13 +83,15 @@ router.post("/otp/verify", async (req, res) => {
 
     const ticket = await Ticket.findOne({ phoneNumber: to });
     if (!ticket) {
-      return res.status(404).json({ error: "No ticket found for this phone number" });
+      return res
+        .status(404)
+        .json({ error: "No ticket found for this phone number" });
     }
 
     const isActive = ticket.isActive === true || ticket.isActive === "true";
 
     const prescriptions =
-      ticket.summaries?.map((s) => s.prescription?.text).filter(Boolean) || [];
+      ticket.prescriptions?.map((p) => p.prescription) || [];
 
     res.status(200).json({
       verified: true,

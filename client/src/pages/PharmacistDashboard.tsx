@@ -4,7 +4,6 @@ import {
   Edit3,
   Trash2,
   Package,
-  TrendingUp,
   VerifiedIcon,
   Search,
   LogOut,
@@ -286,7 +285,7 @@ const PharmacistDashboard: React.FC = () => {
           </div>
 
           {/* Optional: Mode toggle or profile dropdown */}
-          <Button variant="outline" size={"icon"}  onClick={handleLogout}>
+          <Button variant="outline" size={"icon"} onClick={handleLogout}>
             <LogOut />
           </Button>
           <ModeToggle />
@@ -299,11 +298,7 @@ const PharmacistDashboard: React.FC = () => {
           <div className="flex space-x-1">
             {[
               { id: "inventory" as const, label: "Inventory", icon: Package },
-              {
-                id: "history" as const,
-                label: "Sales History",
-                icon: TrendingUp,
-              },
+
               {
                 id: "nirmay" as const,
                 label: "Nirmay Verification",
