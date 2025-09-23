@@ -10,6 +10,7 @@ import {
 import SummariesSection from "./SummariesSection";
 
 type Prescription = {
+  _id: string;
   prescription: string;
   prescribedBy?: string;
 };

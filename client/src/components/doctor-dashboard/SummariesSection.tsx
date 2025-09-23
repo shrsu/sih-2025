@@ -31,6 +31,7 @@ interface Summary {
 }
 
 interface Prescription {
+  _id?: string;
   prescription: string;
   prescribedBy?: string;
 }
@@ -55,6 +56,9 @@ function SummariesSection({ ticket }: ReportSectionProps) {
   const [newPrescriptionText, setNewPrescriptionText] = useState("");
   const [updating, setUpdating] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [callStatus, setCallStatus] = useState<
+    "idle" | "calling" | "success" | "error"
+  >("idle");
 
   const selectedSummary = ticket.summaries[selectedSummaryIndex];
 
@@ -63,6 +67,7 @@ function SummariesSection({ ticket }: ReportSectionProps) {
     setSelectedSummaryIndex(ticket.summaries.length - 1);
     setNewPrescriptionText("");
     setStatus("idle");
+    setCallStatus("idle");
   }, [ticket]);
 
   const handleSummaryChange = (val: string) => {
@@ -100,29 +105,42 @@ function SummariesSection({ ticket }: ReportSectionProps) {
     }
   };
 
+  async function initiateCall() {
+    setCallStatus("calling");
+
+    const shortSummaries =
+      ticket.summaries
+        ?.map((s) => s.aiAnalysis?.shortSummary)
+        .filter(Boolean) || [];
+
+    const cleanedPrescriptions =
+      prescriptions?.map(({ _id, ...rest }) => rest) || [];
+
+    try {
+      const response = await axios.post(`${BASE_URL}/call`, {
+        phoneNumber: ticket.phoneNumber,
+        templateContext: {
+          prescriptions: cleanedPrescriptions,
+          shortSummaries,
+          user: ticket.name,
+        },
+      });
+
+      console.log(response.data);
+      setCallStatus("success");
+    } catch (err) {
+      console.error("Call failed:", err);
+      setCallStatus("error");
+    } finally {
+      setTimeout(() => setCallStatus("idle"), 3000);
+    }
+  }
+
   const formattedDate = ticket.createdAt
     ? new Date(ticket.createdAt).toLocaleDateString()
     : new Date(
         parseInt(ticket._id.substring(0, 8), 16) * 1000
       ).toLocaleDateString();
-
-  async function initiateCall() {
-    const summaries =
-      ticket.summaries
-        ?.map((s) => s.aiAnalysis?.shortSummary)
-        .filter(Boolean) || [];
-
-    try {
-      const response = await axios.post(`${BASE_URL}/call`, {
-        phoneNumber: ticket.phoneNumber,
-        templateContext: { prescriptions, summaries, user: ticket.name },
-      });
-
-      console.log(response.data);
-    } catch (err) {
-      console.error("Call failed:", err);
-    }
-  }
 
   return (
     <div className="p-6 text-sm leading-relaxed text-muted-foreground h-full space-y-6">
@@ -138,8 +156,24 @@ function SummariesSection({ ticket }: ReportSectionProps) {
             Ticket ID: <span className="font-mono">{ticket._id}</span>
           </p>
         </div>
-        <div>
-          <Button onClick={initiateCall}>Update Call</Button>
+        <div className="flex gap-4">
+          <a
+            href={`https://nirmayaa.vercel.app/room/${ticket._id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button>Video session</Button>
+          </a>
+
+          <Button onClick={initiateCall} disabled={callStatus === "calling"}>
+            {callStatus === "calling"
+              ? "Calling..."
+              : callStatus === "success"
+              ? "Updated ✓"
+              : callStatus === "error"
+              ? "Failed ✕"
+              : "Update Call"}
+          </Button>
         </div>
       </div>
 
@@ -192,7 +226,7 @@ function SummariesSection({ ticket }: ReportSectionProps) {
 
       <hr className="border-border mt-4" />
 
-      {/* ---- 🧾 Existing Prescriptions in Accordion ---- */}
+      {/* Prescriptions Accordion */}
       <div className="space-y-2">
         <p className="text-md font-medium text-foreground">Prescriptions</p>
 
@@ -225,7 +259,7 @@ function SummariesSection({ ticket }: ReportSectionProps) {
         )}
       </div>
 
-      {/* ---- ➕ Add New Prescription ---- */}
+      {/* Add New Prescription */}
       <div className="space-y-2 pt-4">
         <p className="text-md font-medium text-foreground">Add Prescription</p>
         <Textarea

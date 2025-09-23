@@ -9,7 +9,7 @@ async function processCompletedCalls() {
     const unprocessedCalls = await Call.find({
       status: "completed",
       processed: { $ne: true },
-    }).limit(5);
+    });
 
     for (const call of unprocessedCalls) {
       const { phoneNumber, aiAnalysis } = call;
