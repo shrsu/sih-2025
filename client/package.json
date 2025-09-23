@@ -27,6 +27,8 @@
     "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
@@ -37,6 +39,7 @@
     "react-router-dom": "^7.9.1",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.13",
+    "twilio": "^5.9.0",
     "zod": "^4.1.8"
   },
   "devDependencies": {

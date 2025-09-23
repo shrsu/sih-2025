@@ -39,6 +39,7 @@ interface ReportSectionProps {
   ticket: {
     _id: string;
     name: string;
+    phoneNumber: string;
     gender: string;
     summaries: Summary[];
     prescriptions: Prescription[];
@@ -105,18 +106,42 @@ function SummariesSection({ ticket }: ReportSectionProps) {
         parseInt(ticket._id.substring(0, 8), 16) * 1000
       ).toLocaleDateString();
 
+  async function initiateCall() {
+    const prescriptions = ticket.prescriptions || [];
+    const shortSummaries =
+      ticket.summaries
+        ?.map((s) => s.aiAnalysis?.shortSummary)
+        .filter(Boolean) || [];
+
+    try {
+      const response = await axios.post(`${BASE_URL}/call`, {
+        phoneNumber: ticket.phoneNumber,
+        templateContext: { prescriptions, shortSummaries, user: ticket.name },
+      });
+
+      console.log(response.data);
+    } catch (err) {
+      console.error("Call failed:", err);
+    }
+  }
+
   return (
     <div className="p-6 text-sm leading-relaxed text-muted-foreground h-full space-y-6">
       {/* Header */}
-      <div className="space-y-1">
-        <p className="text-lg font-semibold text-foreground">{ticket.name}</p>
-        <div className="flex gap-4 text-muted-foreground text-sm">
-          <span>Gender: {ticket.gender}</span>
-          <span>Date: {formattedDate}</span>
+      <div className="flex w-full justify-between">
+        <div className="space-y-1">
+          <p className="text-lg font-semibold text-foreground">{ticket.name}</p>
+          <div className="flex gap-4 text-muted-foreground text-sm">
+            <span>Gender: {ticket.gender}</span>
+            <span>Date: {formattedDate}</span>
+          </div>
+          <p className="text-xs text-muted-foreground break-all">
+            Ticket ID: <span className="font-mono">{ticket._id}</span>
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground break-all">
-          Ticket ID: <span className="font-mono">{ticket._id}</span>
-        </p>
+        <div>
+          <Button onClick={initiateCall}>Update Call</Button>
+        </div>
       </div>
 
       {/* Summary Selector */}

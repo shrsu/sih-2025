@@ -43,7 +43,7 @@ export function TicketCard({
         </div>
         <div className="pt-4 flex w-full justify-end">
           <Button onClick={onViewReport} variant="outline">
-            Call Summary
+            View Ticket
           </Button>
         </div>
       </CardContent>
