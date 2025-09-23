@@ -8,19 +8,19 @@ dotenv.config();
 const router = express.Router();
 
 const {
-  TWILIO_ACCOUNT_SID,
-  TWILIO_AUTH_TOKEN,
-  TWILIO_VERIFY_SERVICE_SID,
+  TWILIO_ACCOUNT_SID_OTP,
+  TWILIO_AUTH_TOKEN_OTP,
+  TWILIO_VERIFY_SERVICE_SID_OTP,
 } = process.env;
 
-if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_VERIFY_SERVICE_SID) {
+if (!TWILIO_ACCOUNT_SID_OTP || !TWILIO_AUTH_TOKEN_OTP || !TWILIO_VERIFY_SERVICE_SID_OTP) {
   console.warn(
-    "Twilio environment variables are missing. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_VERIFY_SERVICE_SID."
+    "Twilio environment variables are missing. Set TWILIO_ACCOUNT_SID_OTP, TWILIO_AUTH_TOKEN_OTP, TWILIO_VERIFY_SERVICE_SID_OTP."
   );
 }
 
-const twilioClient = TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN
-  ? twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+const twilioClient = TWILIO_ACCOUNT_SID_OTP && TWILIO_AUTH_TOKEN_OTP
+  ? twilio(TWILIO_ACCOUNT_SID_OTP, TWILIO_AUTH_TOKEN_OTP)
   : null;
 
 function normalizeIndianPhone(phoneNumber) {
@@ -41,7 +41,7 @@ router.post("/otp/send", async (req, res) => {
     const to = normalizeIndianPhone(phoneNumber);
 
     const verification = await twilioClient.verify.v2
-      .services(TWILIO_VERIFY_SERVICE_SID)
+      .services(TWILIO_VERIFY_SERVICE_SID_OTP)
       .verifications.create({ to, channel: "sms" });
 
     res.status(200).json({ status: verification.status, to });
@@ -65,7 +65,7 @@ router.post("/otp/verify", async (req, res) => {
     const to = normalizeIndianPhone(phoneNumber);
 
     const check = await twilioClient.verify.v2
-      .services(TWILIO_VERIFY_SERVICE_SID)
+      .services(TWILIO_VERIFY_SERVICE_SID_OTP)
       .verificationChecks.create({ to, code });
 
     if (check.status !== "approved") {
