@@ -62,12 +62,21 @@ const UserDashboard: React.FC = () => {
       setError(null);
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_BACKEND_URI}/tickets/phone/${customer.phoneNumber}`
+          `${import.meta.env.VITE_BACKEND_URI}/tickets/by-phone`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phoneNumber: customer.phoneNumber }),
+          }
         );
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          setError(data?.error || "Failed to fetch your tickets");
-          setTickets([]);
+          if (res.status === 404) {
+            setTickets([]);
+          } else {
+            setError(data?.error || "Failed to fetch your tickets");
+            setTickets([]);
+          }
         } else {
           // Normalize and de-duplicate tickets and their summaries
           const input: Ticket[] = Array.isArray(data) ? data : [];
