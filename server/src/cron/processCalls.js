@@ -56,8 +56,9 @@ async function processCompletedCalls() {
 }
 
 export function startCron() {
-  cron.schedule("*/30 * * * * *", () => {
+  cron.schedule("*/10 * * * * *", () => {
     console.log("Cron running: polling completed calls...");
     processCompletedCalls();
   });
 }
+
