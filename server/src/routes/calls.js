@@ -11,6 +11,7 @@ router.post("/call", async (req, res) => {
   try {
     const { phoneNumber, templateContext } = req.body;
 
+    console.log(templateContext);
     if (!phoneNumber) {
       return res.status(400).json({ error: "Phone number is required" });
     }

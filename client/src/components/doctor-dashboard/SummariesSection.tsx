@@ -107,8 +107,7 @@ function SummariesSection({ ticket }: ReportSectionProps) {
       ).toLocaleDateString();
 
   async function initiateCall() {
-    const prescriptions = ticket.prescriptions || [];
-    const shortSummaries =
+    const summaries =
       ticket.summaries
         ?.map((s) => s.aiAnalysis?.shortSummary)
         .filter(Boolean) || [];
@@ -116,7 +115,7 @@ function SummariesSection({ ticket }: ReportSectionProps) {
     try {
       const response = await axios.post(`${BASE_URL}/call`, {
         phoneNumber: ticket.phoneNumber,
-        templateContext: { prescriptions, shortSummaries, user: ticket.name },
+        templateContext: { prescriptions, summaries, user: ticket.name },
       });
 
       console.log(response.data);

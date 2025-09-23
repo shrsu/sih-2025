@@ -37,10 +37,12 @@ function HomePage() {
                   <Link to="/pharmacist/dashboard">Pharmacist Dashboard</Link>
                 </Button>
               )}
-              {/* User Dashboard quick access */}
-              <Button asChild>
+              {entity.role === "user" && (
+                <Button asChild>
                 <Link to="/user/dashboard">User Dashboard</Link>
               </Button>
+              )}
+              
             </>
           ) : (
             <>

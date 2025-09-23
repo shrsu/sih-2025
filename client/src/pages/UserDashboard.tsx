@@ -1,7 +1,18 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ModeToggle } from "@/themes/mode-toggle";
-import { User, Phone, ClipboardList, FileText, Pill, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  User,
+  Phone,
+  ClipboardList,
+  FileText,
+  Pill,
+  ChevronDown,
+  ChevronUp,
+  LogOut,
+} from "lucide-react";
+import { useLoggedInEntity } from "@/contexts/LoggedInEntityContext";
+import { Button } from "@/components/ui/button";
 
 interface AiAnalysis {
   shortSummary?: string;
@@ -12,7 +23,6 @@ interface AiAnalysis {
 interface Summary {
   id: string;
   aiAnalysis?: AiAnalysis;
-  // Some backends may include a summary-level prescription
   prescription?: {
     text?: string;
     prescribedBy?: string;
@@ -41,21 +51,19 @@ const UserDashboard: React.FC = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expandedSummaries, setExpandedSummaries] = useState<Record<string, boolean>>({});
-
-  const customer = useMemo(() => {
-    try {
-      return JSON.parse(localStorage.getItem("nirmaya-customer") || "null");
-    } catch {
-      return null;
-    }
-  }, []);
+  const [expandedSummaries, setExpandedSummaries] = useState<
+    Record<string, boolean>
+  >({});
+  const { entity, setEntity } = useLoggedInEntity();
 
   useEffect(() => {
-    if (!customer?.phoneNumber) {
+    if (!entity?.loggedIn || entity.role !== "user") {
       navigate("/user/login");
-      return;
     }
+  }, [entity, navigate]);
+
+  useEffect(() => {
+    if (!entity?.id || entity.role !== "user") return;
 
     const fetchTickets = async () => {
       setLoading(true);
@@ -66,7 +74,7 @@ const UserDashboard: React.FC = () => {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phoneNumber: customer.phoneNumber }),
+            body: JSON.stringify({ phoneNumber: entity.id }),
           }
         );
         const data = await res.json().catch(() => ({}));
@@ -78,12 +86,10 @@ const UserDashboard: React.FC = () => {
             setTickets([]);
           }
         } else {
-          // Normalize and de-duplicate tickets and their summaries
           const input: Ticket[] = Array.isArray(data) ? data : [];
           const byId = new Map<string, Ticket>();
           for (const t of input) {
             if (!t || !t._id) continue;
-            // De-duplicate summaries by their id within a ticket
             const seenSummary = new Set<string>();
             const uniqueSummaries = (t.summaries || []).filter((s) => {
               const sid = String(s.id);
@@ -105,10 +111,18 @@ const UserDashboard: React.FC = () => {
     };
 
     fetchTickets();
-  }, [customer?.phoneNumber, navigate]);
+  }, [entity?.id, entity?.role]);
 
   const toggleSummary = (compositeId: string) => {
-    setExpandedSummaries((prev) => ({ ...prev, [compositeId]: !prev[compositeId] }));
+    setExpandedSummaries((prev) => ({
+      ...prev,
+      [compositeId]: !prev[compositeId],
+    }));
+  };
+
+  const handleLogout = () => {
+    setEntity(null);
+    navigate("/");
   };
 
   return (
@@ -125,16 +139,20 @@ const UserDashboard: React.FC = () => {
             </p>
           </div>
         </div>
-        <ModeToggle />
+        <div className="flex gap-4">
+          <Button variant="outline" size={"icon"} onClick={handleLogout}>
+            <LogOut />
+          </Button>
+          <ModeToggle />
+        </div>
       </header>
 
       <div className="mx-auto max-w-7xl px-6 py-6 w-full">
-        {/* User Info Card */}
         <div className="bg-card rounded-xl shadow-sm p-6 mb-6 border dark:border-gray-700">
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-2 text-foreground">
               <Phone className="w-5 h-5 text-muted-foreground" />
-              <span className="font-medium">{customer?.phoneNumber || "Unknown"}</span>
+              <span className="font-medium">{entity?.id || "Unknown"}</span>
             </div>
             <div className="text-sm text-muted-foreground">
               Keep this number safe. It's used to locate your records.
@@ -142,27 +160,35 @@ const UserDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Tickets Section */}
         <div className="bg-card rounded-xl shadow-sm border dark:border-gray-700">
           <div className="p-6 border-b dark:border-gray-800">
             <h2 className="text-xl font-semibold flex items-center gap-2 text-foreground">
               <ClipboardList className="h-5 w-5" /> Your Tickets
             </h2>
-            <p className="text-sm text-muted-foreground">Active and past consultations</p>
+            <p className="text-sm text-muted-foreground">
+              Active and past consultations
+            </p>
           </div>
 
           <div className="p-6">
             {loading && (
-              <div className="text-sm text-muted-foreground">Loading your records...</div>
+              <div className="text-sm text-muted-foreground">
+                Loading your records...
+              </div>
             )}
             {error && <div className="text-sm text-red-600">{error}</div>}
             {!loading && !error && tickets.length === 0 && (
-              <div className="text-sm text-muted-foreground">No records found yet.</div>
+              <div className="text-sm text-muted-foreground">
+                No records found yet.
+              </div>
             )}
 
             <div className="space-y-5">
               {tickets.map((t) => (
-                <div key={t._id} className="rounded-lg border p-4 bg-background">
+                <div
+                  key={t._id}
+                  className="rounded-lg border p-4 bg-background"
+                >
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <div className="text-base font-medium text-foreground">
@@ -170,13 +196,22 @@ const UserDashboard: React.FC = () => {
                       </div>
                       <div className="text-xs text-muted-foreground">
                         Ticket ID: {t._id}
-                        {t.createdAt ? ` • Created ${new Date(t.createdAt).toLocaleString()}` : ""}
+                        {t.createdAt
+                          ? ` • Created ${new Date(
+                              t.createdAt
+                            ).toLocaleString()}`
+                          : ""}
                       </div>
                       <div className="text-xs">
-                        Status: {t.isActive ? (
-                          <span className="text-emerald-600 font-medium">Active</span>
+                        Status:{" "}
+                        {t.isActive ? (
+                          <span className="text-emerald-600 font-medium">
+                            Active
+                          </span>
                         ) : (
-                          <span className="text-muted-foreground">Inactive</span>
+                          <span className="text-muted-foreground">
+                            Inactive
+                          </span>
                         )}
                       </div>
                     </div>
@@ -185,72 +220,91 @@ const UserDashboard: React.FC = () => {
                   {/* Summaries */}
                   {t.summaries && t.summaries.length > 0 && (
                     <div className="mt-4 space-y-3">
-                      <div className="text-sm font-medium text-foreground">Consultation Summaries</div>
+                      <div className="text-sm font-medium text-foreground">
+                        Consultation Summaries
+                      </div>
                       {t.summaries.map((s) => {
                         const summaryKey = `${t._id}:${s.id}`;
                         return (
-                        <div key={summaryKey} className="rounded-md border p-3 bg-card/50">
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <div className="text-sm font-semibold text-foreground">Summary</div>
-                              <div className="text-sm text-muted-foreground">
-                                {s.aiAnalysis?.shortSummary || "No short summary available."}
+                          <div
+                            key={summaryKey}
+                            className="rounded-md border p-3 bg-card/50"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="text-sm font-semibold text-foreground">
+                                  Summary
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {s.aiAnalysis?.shortSummary ||
+                                    "No short summary available."}
+                                </div>
                               </div>
+                              <button
+                                className="text-xs text-primary flex items-center gap-1"
+                                onClick={() => toggleSummary(summaryKey)}
+                              >
+                                {expandedSummaries[summaryKey] ? (
+                                  <>
+                                    Hide details{" "}
+                                    <ChevronUp className="w-4 h-4" />
+                                  </>
+                                ) : (
+                                  <>
+                                    View details{" "}
+                                    <ChevronDown className="w-4 h-4" />
+                                  </>
+                                )}
+                              </button>
                             </div>
-                            <button
-                              className="text-xs text-primary flex items-center gap-1"
-                              onClick={() => toggleSummary(summaryKey)}
-                            >
-                              {expandedSummaries[summaryKey] ? (
-                                <>
-                                  Hide details <ChevronUp className="w-4 h-4" />
-                                </>
-                              ) : (
-                                <>
-                                  View details <ChevronDown className="w-4 h-4" />
-                                </>
-                              )}
-                            </button>
-                          </div>
 
-                          {expandedSummaries[summaryKey] && (
-                            <div className="mt-3 space-y-2">
-                              {!!s.aiAnalysis?.detailedSummary && (
-                                <div className="text-sm text-foreground">
-                                  <span className="font-medium">Detailed:</span> {s.aiAnalysis.detailedSummary}
-                                </div>
-                              )}
-                              {!!s.aiAnalysis?.transcript && (
-                                <details className="text-sm">
-                                  <summary className="cursor-pointer select-none text-foreground">Transcript</summary>
-                                  <pre className="mt-2 whitespace-pre-wrap text-muted-foreground bg-background p-2 rounded border">
-                                    {s.aiAnalysis.transcript}
-                                  </pre>
-                                </details>
-                              )}
-
-                              {/* Summary-level prescription if present */}
-                              {s.prescription?.text && (
-                                <div className="text-sm text-foreground flex items-start gap-2">
-                                  <Pill className="w-4 h-4 text-emerald-600 mt-0.5" />
-                                  <div>
-                                    <div className="font-medium">Prescription</div>
-                                    <div className="text-muted-foreground">{s.prescription.text}</div>
-                                    {s.prescription.prescribedBy && (
-                                      <div className="text-xs text-muted-foreground">Prescribed by: {s.prescription.prescribedBy}</div>
-                                    )}
+                            {expandedSummaries[summaryKey] && (
+                              <div className="mt-3 space-y-2">
+                                {!!s.aiAnalysis?.detailedSummary && (
+                                  <div className="text-sm text-foreground">
+                                    <span className="font-medium">
+                                      Detailed:
+                                    </span>{" "}
+                                    {s.aiAnalysis.detailedSummary}
                                   </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                                )}
+                                {!!s.aiAnalysis?.transcript && (
+                                  <details className="text-sm">
+                                    <summary className="cursor-pointer select-none text-foreground">
+                                      Transcript
+                                    </summary>
+                                    <pre className="mt-2 whitespace-pre-wrap text-muted-foreground bg-background p-2 rounded border">
+                                      {s.aiAnalysis.transcript}
+                                    </pre>
+                                  </details>
+                                )}
+                                {s.prescription?.text && (
+                                  <div className="text-sm text-foreground flex items-start gap-2">
+                                    <Pill className="w-4 h-4 text-emerald-600 mt-0.5" />
+                                    <div>
+                                      <div className="font-medium">
+                                        Prescription
+                                      </div>
+                                      <div className="text-muted-foreground">
+                                        {s.prescription.text}
+                                      </div>
+                                      {s.prescription.prescribedBy && (
+                                        <div className="text-xs text-muted-foreground">
+                                          Prescribed by:{" "}
+                                          {s.prescription.prescribedBy}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
                   )}
 
-                  {/* Ticket-level prescriptions */}
                   {t.prescriptions && t.prescriptions.length > 0 && (
                     <div className="mt-4 space-y-2">
                       <div className="text-sm font-medium text-foreground flex items-center gap-2">
@@ -259,9 +313,14 @@ const UserDashboard: React.FC = () => {
                       <ul className="list-disc ml-6 text-sm text-foreground">
                         {t.prescriptions.map((p, idx) => (
                           <li key={idx} className="mb-1">
-                            <span className="text-muted-foreground">{p.prescription}</span>
+                            <span className="text-muted-foreground">
+                              {p.prescription}
+                            </span>
                             {p.prescribedBy && (
-                              <span className="text-xs text-muted-foreground"> — {p.prescribedBy}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {" "}
+                                — {p.prescribedBy}
+                              </span>
                             )}
                           </li>
                         ))}
