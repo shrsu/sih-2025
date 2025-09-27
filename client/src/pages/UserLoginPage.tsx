@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Phone, LockKeyhole, UserRound, Eye, EyeOff, Shield, Sparkles } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { Phone, LockKeyhole, UserRound, Eye, EyeOff, Shield, Sparkles, Home } from "lucide-react";
 import { ModeToggle } from "@/themes/mode-toggle";
 import { useLoggedInEntity } from "@/contexts/LoggedInEntityContext";
 
@@ -83,7 +83,18 @@ const UserLoginPage: React.FC = () => {
             </p>
           </div>
         </div>
-        <ModeToggle />
+
+        {/* Navbar Right Side */}
+        <div className="flex items-center gap-6">
+          <Link
+            to="/"
+            className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors duration-200"
+            title="Home"
+          >
+            <Home className="w-6 h-6 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200" />
+          </Link>
+          <ModeToggle />
+        </div>
       </header>
 
       {/* Main Content */}

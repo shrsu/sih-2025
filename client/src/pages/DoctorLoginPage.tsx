@@ -126,7 +126,7 @@ function DoctorLoginPage() {
             </p>
           </div>
           <p className="font-bold text-2xl text-primary bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent">
-            Nirmaya
+            Nirmay
           </p>
         </Link>
         <ModeToggle />

@@ -464,7 +464,7 @@ const PrescriptionsSection = ({ prescriptions }) => (
                 {hasDoctor && (
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    <span className="font-medium">Dr. {p.prescribedBy}</span>
+                    <span className="font-medium">{p.prescribedBy}</span>
                   </div>
                 )}
                 

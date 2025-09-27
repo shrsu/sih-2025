@@ -96,14 +96,13 @@ function PharmacistLoginPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      {/* Floating background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-4 -right-4 w-72 h-72 bg-blue-200/20 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute -bottom-4 -left-4 w-96 h-96 bg-green-200/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-200/10 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
-      <header className="relative flex w-full justify-between px-8 py-6 backdrop-blur-sm">
+      <header className="relative flex w-full justify-between px-8 py-6 backdrop-blur-sm z-10">
         <Link 
           to="/" 
           className="flex items-center gap-4 transition-all duration-300 hover:scale-105 group"
@@ -115,13 +114,13 @@ function PharmacistLoginPage() {
             </p>
           </div>
           <p className="font-bold text-2xl text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-            Nirmaya
+            Nirmay
           </p>
         </Link>
         <ModeToggle />
       </header>
 
-      <main className="relative flex flex-col flex-1 mb-12 items-center justify-center px-4">
+      <main className="relative flex flex-col flex-1 mb-12 items-center justify-center px-4 z-10">
         {/* Main login card */}
         <div className="w-full max-w-lg mb-4 relative">
           {/* Glow effect */}
