@@ -43,7 +43,7 @@ function TicketsSection({ tickets }: { tickets: Ticket[] }) {
       <ResizablePanelGroup direction="horizontal" className="h-full">
         <ResizablePanel defaultSize={70} className="h-full">
           <div className="flex flex-col h-full">
-            <div className="sticky top-0 z-10 bg-background px-8 py-6">
+            <div className="top-0 z-10 bg-background px-8 py-6">
               <h1 className="text-2xl font-bold text-primary">Patients</h1>
             </div>
             <div className="flex-1 w-full overflow-y-auto p-8 pt-6">

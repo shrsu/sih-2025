@@ -102,6 +102,7 @@ router.post("/tickets/by-phone", async (req, res) => {
   try {
     const tickets = await Ticket.find({ phoneNumber });
 
+    console.log(tickets);
     if (!tickets || tickets.length === 0) {
       return res
         .status(404)
