@@ -19,7 +19,7 @@ const summarySchema = new mongoose.Schema(
 
 const ticketSchema = new mongoose.Schema(
   {
-    phoneNumber: { type: String, unique: true },
+    phoneNumber: { type: String },
     name: String,
     gender: String,
     summaries: [summarySchema],
